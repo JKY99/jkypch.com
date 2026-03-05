@@ -166,6 +166,72 @@ services:
       start_period: 90s
     restart: unless-stopped
 
+  # ─────────────────────────────────────
+  # 5. 모니터링 스택
+  # ─────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    expose:
+      - "9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=15d'
+    depends_on:
+      nginx:
+        condition: service_healthy
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    expose:
+      - "3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    environment:
+      - GF_SERVER_ROOT_URL=http://localhost/grafana
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    expose:
+      - "9113"
+    command:
+      - '--nginx.scrape-uri=http://nginx:80/nginx_status'
+    depends_on:
+      nginx:
+        condition: service_healthy
+    restart: unless-stopped
+
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.40
+    expose:
+      - "9216"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    expose:
+      - "9121"
+    environment:
+      - REDIS_ADDR=redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
   # Oracle은 별도 라이선스 필요. 로컬 Oracle 연결 시 .env에서 ORACLE_URL 설정
   # oracle:
   #   image: container-registry.oracle.com/database/express:latest
@@ -183,4 +249,6 @@ volumes:
   jenkins_home:
   mongo_data:
   redis_data:
+  prometheus_data:
+  grafana_data:
   # oracle_data:

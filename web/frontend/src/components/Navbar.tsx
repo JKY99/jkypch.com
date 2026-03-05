@@ -47,6 +47,17 @@ export default function Navbar() {
           </li>
           <li>
             <a
+              href="/grafana"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.link}
+              onClick={() => setOpen(false)}
+            >
+              Grafana
+            </a>
+          </li>
+          <li>
+            <a
               href="https://github.com/JKY99"
               target="_blank"
               rel="noopener noreferrer"
