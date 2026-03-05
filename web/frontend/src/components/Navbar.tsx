@@ -58,6 +58,17 @@ export default function Navbar() {
           </li>
           <li>
             <a
+              href="/jenkins"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.link}
+              onClick={() => setOpen(false)}
+            >
+              Jenkins
+            </a>
+          </li>
+          <li>
+            <a
               href="https://github.com/JKY99"
               target="_blank"
               rel="noopener noreferrer"
