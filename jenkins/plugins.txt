@@ -1,0 +1,10 @@
+workflow-aggregator:latest
+git:latest
+github:latest
+docker-workflow:latest
+credentials-binding:latest
+configuration-as-code:latest
+job-dsl:latest
+pipeline-stage-view:latest
+timestamper:latest
+ansicolor:latest

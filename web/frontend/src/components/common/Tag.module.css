@@ -1,0 +1,47 @@
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  border-radius: 100px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.default {
+  color: var(--text-2);
+  background: var(--bg-2);
+  border-color: var(--border);
+}
+.orange {
+  color: var(--orange);
+  background: rgba(242, 98, 7, 0.1);
+  border-color: rgba(242, 98, 7, 0.3);
+}
+.green {
+  color: var(--green);
+  background: rgba(63, 185, 80, 0.1);
+  border-color: rgba(63, 185, 80, 0.3);
+}
+.blue {
+  color: var(--blue);
+  background: rgba(88, 166, 255, 0.1);
+  border-color: rgba(88, 166, 255, 0.3);
+}
+.purple {
+  color: var(--purple);
+  background: rgba(163, 113, 247, 0.1);
+  border-color: rgba(163, 113, 247, 0.3);
+}
+.red {
+  color: var(--red);
+  background: rgba(248, 81, 73, 0.1);
+  border-color: rgba(248, 81, 73, 0.3);
+}
+.yellow {
+  color: var(--yellow);
+  background: rgba(227, 179, 65, 0.1);
+  border-color: rgba(227, 179, 65, 0.3);
+}

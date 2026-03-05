@@ -1,0 +1,121 @@
+pipeline {
+    agent any
+
+    options {
+        timestamps()
+        ansiColor('xterm')
+        timeout(time: 15, unit: 'MINUTES')
+        disableConcurrentBuilds()
+    }
+
+    environment {
+        IMAGE      = 'jkypch-web:latest'
+        NETWORK    = 'jkypch_default'
+        NGINX_CONF = '/nginx-conf'
+        PROJECT    = 'jkypch'
+    }
+
+    stages {
+
+        stage('Build Image') {
+            steps {
+                echo "Building Docker image from /workspace/web"
+                sh 'docker build -t ${IMAGE} /workspace/web'
+            }
+        }
+
+        stage('Determine Slots') {
+            steps {
+                script {
+                    def conf = readFile("${env.NGINX_CONF}/web-active.conf")
+                    env.ACTIVE   = conf.contains('web-blue') ? 'blue' : 'green'
+                    env.INACTIVE = env.ACTIVE  == 'blue'    ? 'green' : 'blue'
+                    echo "▶ Active=${env.ACTIVE}  →  Deploy to=${env.INACTIVE}"
+                }
+            }
+        }
+
+        stage('Start Inactive Slot') {
+            steps {
+                script {
+                    def cname   = "${env.PROJECT}-web-${env.INACTIVE}-1"
+                    def active  = env.ACTIVE
+                    def inactive = env.INACTIVE
+                    def image   = env.IMAGE
+                    def network = env.NETWORK
+
+                    sh """
+                        docker rm -f ${cname} 2>/dev/null || true
+                        docker run -d \\
+                            --name ${cname} \\
+                            --network ${network} \\
+                            --network-alias web-${inactive} \\
+                            -e SPRING_PROFILES_ACTIVE=prod \\
+                            -e MONGODB_URI=mongodb://mongodb:27017/jkypch \\
+                            -e REDIS_HOST=redis \\
+                            -e REDIS_PORT=6379 \\
+                            ${image}
+                    """
+                }
+            }
+        }
+
+        stage('Health Check') {
+            steps {
+                script {
+                    def inactive = env.INACTIVE
+                    echo "Waiting for web-${inactive}:8080/actuator/health ..."
+                    timeout(time: 5, unit: 'MINUTES') {
+                        waitUntil(initialRecurrencePeriod: 5000, quiet: true) {
+                            def code = sh(
+                                script: "curl -sf http://web-${inactive}:8080/actuator/health",
+                                returnStatus: true
+                            )
+                            return code == 0
+                        }
+                    }
+                    echo "✓ Health check passed for web-${inactive}"
+                }
+            }
+        }
+
+        stage('Switch Traffic') {
+            steps {
+                script {
+                    def inactive = env.INACTIVE
+                    def project  = env.PROJECT
+                    // nginx map 변수 ($host, $web_backend) 이스케이프 주의
+                    def confContent = "map \$host \$web_backend {\n    default \"web-${inactive}:8080\";\n}\n"
+                    writeFile file: "${env.NGINX_CONF}/web-active.conf", text: confContent
+                    sh "docker exec ${project}-nginx-1 nginx -s reload"
+                    echo "✓ Traffic switched to web-${inactive}"
+                }
+            }
+        }
+
+        stage('Stop Old Slot') {
+            steps {
+                script {
+                    def active  = env.ACTIVE
+                    def project = env.PROJECT
+                    sh "docker stop ${project}-web-${active}-1 || true"
+                    echo "✓ Stopped web-${active}"
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Blue-Green deploy complete. Active slot: ${env.INACTIVE}"
+        }
+        failure {
+            script {
+                def inactive = env.INACTIVE
+                def project  = env.PROJECT
+                sh "docker stop ${project}-web-${inactive}-1 2>/dev/null || true"
+                echo "❌ Deploy failed — rolled back (stopped web-${inactive})"
+            }
+        }
+    }
+}

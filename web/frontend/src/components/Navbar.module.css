@@ -1,0 +1,114 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  height: var(--navbar-height);
+  background: rgba(13, 17, 23, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  gap: var(--gap-xl);
+}
+
+/* Logo */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--text-1);
+  flex-shrink: 0;
+}
+.logo:hover { color: var(--text-1); text-decoration: none; }
+
+.logoBracket { color: var(--orange); }
+.logoText { color: var(--text-1); margin: 0 1px; }
+.logoCursor {
+  color: var(--orange);
+  animation: blink 1.2s step-end infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* Nav links */
+.links {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-xs);
+  list-style: none;
+  margin-left: auto;
+}
+
+.link {
+  display: block;
+  padding: 6px 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-2);
+  border-radius: var(--radius-sm);
+  transition: color var(--transition), background var(--transition);
+  text-decoration: none;
+}
+.link:hover {
+  color: var(--text-1);
+  background: var(--bg-2);
+  text-decoration: none;
+}
+.active {
+  color: var(--orange) !important;
+}
+
+/* Burger */
+.burger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  margin-left: auto;
+}
+.burger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--text-2);
+  border-radius: 2px;
+  transition: background var(--transition);
+}
+.burger:hover span { background: var(--text-1); }
+
+/* Mobile */
+@media (max-width: 640px) {
+  .burger { display: flex; }
+
+  .links {
+    display: none;
+    flex-direction: column;
+    align-items: flex-start;
+    position: absolute;
+    top: var(--navbar-height);
+    left: 0;
+    right: 0;
+    background: var(--bg-1);
+    border-bottom: 1px solid var(--border);
+    padding: var(--gap-md);
+    gap: var(--gap-xs);
+    margin-left: 0;
+  }
+  .links.open { display: flex; }
+  .link { width: 100%; padding: 10px 16px; }
+}

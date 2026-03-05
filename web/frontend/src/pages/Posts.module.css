@@ -1,0 +1,123 @@
+.page {
+  padding: var(--gap-2xl) 0 var(--gap-3xl);
+}
+
+.header {
+  margin-bottom: var(--gap-2xl);
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--gap-sm);
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  color: var(--text-2);
+}
+
+/* Empty state: terminal */
+.emptyState {
+  display: flex;
+  justify-content: center;
+  padding: var(--gap-2xl) 0;
+}
+
+.emptyTerminal {
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.terminalDots {
+  display: flex;
+  gap: 6px;
+  padding: 10px 14px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+}
+.terminalDots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border);
+}
+.terminalDots span:nth-child(1) { background: #f85149; }
+.terminalDots span:nth-child(2) { background: var(--yellow); }
+.terminalDots span:nth-child(3) { background: var(--green); }
+
+.terminalBody {
+  padding: var(--gap-md) var(--gap-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.terminalLine, .terminalOutput, .terminalCursor {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.terminalOutput { color: var(--text-3); }
+.terminalCursor { margin-top: var(--gap-sm); }
+
+.prompt { color: var(--orange); }
+.cmd { color: var(--green); }
+
+.cursor {
+  color: var(--orange);
+  animation: blink 1s step-end infinite;
+  margin-left: 4px;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* Post grid */
+.grid {
+  display: grid;
+  gap: var(--gap-lg);
+}
+
+.card {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--gap-lg);
+  transition: border-color var(--transition);
+  cursor: pointer;
+}
+.card:hover { border-color: var(--orange); }
+
+.cardMeta { margin-bottom: var(--gap-sm); }
+
+.date {
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+  color: var(--text-3);
+}
+
+.cardTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-1);
+  margin-bottom: var(--gap-sm);
+  line-height: 1.4;
+}
+
+.excerpt {
+  font-size: 0.875rem;
+  color: var(--text-2);
+  line-height: 1.65;
+  margin-bottom: var(--gap-md);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}

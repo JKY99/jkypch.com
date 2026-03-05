@@ -1,0 +1,24 @@
+jenkins:
+  systemMessage: "jkypch.com CI/CD"
+  numExecutors: 2
+  mode: NORMAL
+  quietPeriod: 0
+
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "admin"
+          password: "${JENKINS_ADMIN_PASSWORD:-admin}"
+
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+
+unclassified:
+  location:
+    url: "http://localhost/jenkins/"
+
+  # GitHub webhook (필요 시 token 추가)
+  githubPluginConfig:
+    hookUrl: "http://localhost/jenkins/github-webhook/"

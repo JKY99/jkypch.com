@@ -1,0 +1,182 @@
+name: jkypch
+
+# 기동 순서:
+#   1. nginx          (healthcheck 통과 후)
+#   2. mongodb, redis  (nginx healthy 이후)
+#   3. jenkins         (mongodb + redis healthy 이후)
+#   4. web-blue        (jenkins healthy 이후 자동 기동)
+#
+# 이후 배포:
+#   Jenkins blue-green pipeline → web-green → nginx reload → web-blue stop
+
+services:
+
+  # ─────────────────────────────────────
+  # 1. nginx (가장 먼저 기동)
+  # ─────────────────────────────────────
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d   # Jenkins가 web-active.conf를 쓸 수 있도록 rw
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  # ─────────────────────────────────────
+  # 2. 인프라 서비스 (nginx 이후)
+  # ─────────────────────────────────────
+  mongodb:
+    image: mongo:7
+    depends_on:
+      nginx:
+        condition: service_healthy
+    expose:
+      - "27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=jkypch
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    depends_on:
+      nginx:
+        condition: service_healthy
+    expose:
+      - "6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  # ─────────────────────────────────────
+  # 3. Jenkins (인프라 서비스 이후)
+  # ─────────────────────────────────────
+  jenkins:
+    build:
+      context: ./jenkins
+      dockerfile: Dockerfile
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    expose:
+      - "8080"   # Web UI (nginx에서 /jenkins로 프록시)
+      - "50000"  # Agent 연결
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock       # Docker 호스트 접근
+      - .:/workspace:ro                                  # 프로젝트 소스 (읽기 전용)
+      - ./nginx/conf.d:/nginx-conf                       # upstream 파일 수정용
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+      - JENKINS_OPTS=--prefix=/jenkins
+      - CASC_JENKINS_CONFIG=/var/jenkins_home/casc
+      - HOST_PROJECT_PATH=${HOST_PROJECT_PATH:-/workspace}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/jenkins/login > /dev/null"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
+    restart: unless-stopped
+
+  # ─────────────────────────────────────
+  # 4. web-blue (Jenkins healthy 이후 자동 기동 — 초기 슬롯)
+  # ─────────────────────────────────────
+  web-blue:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    image: jkypch-web:latest   # 빌드 후 이 태그로 저장 (blue-green 공유)
+    depends_on:
+      jenkins:
+        condition: service_healthy
+    expose:
+      - "8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-prod}
+      - ORACLE_URL=${ORACLE_URL:-}
+      - ORACLE_USER=${ORACLE_USER:-}
+      - ORACLE_PASS=${ORACLE_PASS:-}
+      - MONGODB_URI=mongodb://mongodb:27017/jkypch
+      - SPRING_MONGODB_URI=mongodb://mongodb:27017/jkypch
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+    labels:
+      - "deploy.slot=blue"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 90s
+    restart: unless-stopped
+
+  # web-green: Jenkins가 blue-green 배포 시 docker run으로 직접 기동
+  # (프로파일 deploy — docker compose up 시 자동 기동 안 됨)
+  web-green:
+    image: jkypch-web:latest
+    depends_on:
+      jenkins:
+        condition: service_started
+    profiles:
+      - deploy
+    expose:
+      - "8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-prod}
+      - ORACLE_URL=${ORACLE_URL:-}
+      - ORACLE_USER=${ORACLE_USER:-}
+      - ORACLE_PASS=${ORACLE_PASS:-}
+      - MONGODB_URI=mongodb://mongodb:27017/jkypch
+      - SPRING_MONGODB_URI=mongodb://mongodb:27017/jkypch
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+    labels:
+      - "deploy.slot=green"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 90s
+    restart: unless-stopped
+
+  # Oracle은 별도 라이선스 필요. 로컬 Oracle 연결 시 .env에서 ORACLE_URL 설정
+  # oracle:
+  #   image: container-registry.oracle.com/database/express:latest
+  #   depends_on:
+  #     nginx:
+  #       condition: service_healthy
+  #   ports:
+  #     - "1521:1521"
+  #   environment:
+  #     - ORACLE_PWD=${ORACLE_SYS_PASS:-oracle}
+  #   volumes:
+  #     - oracle_data:/opt/oracle/oradata
+
+volumes:
+  jenkins_home:
+  mongo_data:
+  redis_data:
+  # oracle_data:

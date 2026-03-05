@@ -1,0 +1,18 @@
+.env
+*.log
+
+# Gradle
+web/.gradle/
+web/build/
+
+# Node
+web/frontend/node_modules/
+web/frontend/dist/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Spring Boot static (built by frontend)
+web/src/main/resources/static/

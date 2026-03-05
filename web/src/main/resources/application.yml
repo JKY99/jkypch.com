@@ -1,0 +1,69 @@
+spring:
+  application:
+    name: jkypch-web
+  # Spring Boot 4.x: 패키지 재구성으로 인해 기본 DataSource/JPA auto-config 제외
+  # Oracle은 DatabaseConfig에서 @ConditionalOnExpression으로 조건부 처리
+  autoconfigure:
+    exclude:
+      - org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration
+      - org.mybatis.spring.boot.autoconfigure.MybatisLanguageDriverAutoConfiguration
+      - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
+      - org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration
+
+  # Oracle DataSource (ORACLE_URL 설정 시 활성화)
+  datasource:
+    oracle:
+      url: ${ORACLE_URL:}
+      username: ${ORACLE_USER:}
+      password: ${ORACLE_PASS:}
+      driver-class-name: oracle.jdbc.OracleDriver
+
+  # JPA
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 50
+
+  # MongoDB (Spring Boot 4.x: spring.mongodb.*)
+  mongodb:
+    uri: ${MONGODB_URI:mongodb://localhost:27017/jkypch}
+
+  # Redis (Spring Boot 4.x: spring.data.redis.*)
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  # MyBatis
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+    default-fetch-size: 100
+    default-statement-timeout: 30
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+server:
+  port: 8080
+  tomcat:
+    connection-timeout: 10s
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  jpa:
+    properties:
+      hibernate:
+        show_sql: false

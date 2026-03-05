@@ -1,0 +1,158 @@
+/* ── Hero ── */
+.page { overflow-x: hidden; }
+
+.hero {
+  padding: var(--gap-3xl) 0 var(--gap-2xl);
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  position: relative;
+  background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(242, 98, 7, 0.08) 0%, transparent 70%);
+}
+
+.terminalLine {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--text-3);
+  margin-bottom: var(--gap-lg);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.prompt { color: var(--orange); }
+.cmd { color: var(--green); }
+
+.title {
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--gap-md);
+  color: var(--text-1);
+}
+
+.accent {
+  background: linear-gradient(135deg, var(--orange) 0%, #ff8c42 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--text-2);
+  margin-bottom: var(--gap-sm);
+  font-family: var(--font-mono);
+}
+
+.desc {
+  font-size: 1rem;
+  color: var(--text-2);
+  max-width: 500px;
+  line-height: 1.7;
+  margin-bottom: var(--gap-xl);
+}
+
+.actions {
+  display: flex;
+  gap: var(--gap-md);
+  flex-wrap: wrap;
+}
+
+/* ── Stats ── */
+.statsSection {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-1);
+  padding: var(--gap-xl) 0;
+}
+
+.stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gap-xl);
+  flex-wrap: wrap;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-1);
+  font-family: var(--font-mono);
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.statDivider {
+  width: 1px;
+  height: 36px;
+  background: var(--border);
+}
+
+/* ── Section ── */
+.section { padding: var(--gap-3xl) 0; }
+
+.sectionTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-bottom: var(--gap-lg);
+  font-family: var(--font-mono);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--gap-lg);
+}
+.sectionHeader .sectionTitle { margin-bottom: 0; }
+
+.viewAll {
+  font-size: 0.85rem;
+  color: var(--orange);
+  transition: color var(--transition);
+}
+.viewAll:hover { color: var(--orange-hover); text-decoration: none; }
+
+/* ── Tags ── */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-sm);
+}
+
+/* ── Empty state ── */
+.emptyState {
+  padding: var(--gap-2xl) 0;
+  text-align: center;
+  color: var(--text-3);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.emptyIcon {
+  font-size: 2rem;
+  margin-bottom: var(--gap-md);
+}
+
+/* ── Mobile ── */
+@media (max-width: 600px) {
+  .hero { min-height: 70vh; padding-top: var(--gap-2xl); }
+  .statDivider { width: 40px; height: 1px; }
+  .stats { gap: var(--gap-lg); }
+}
