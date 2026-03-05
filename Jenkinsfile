@@ -52,8 +52,12 @@ pipeline {
                             --network-alias web-${inactive} \\
                             -e SPRING_PROFILES_ACTIVE=prod \\
                             -e MONGODB_URI=mongodb://mongodb:27017/jkypch \\
-                            -e REDIS_HOST=redis \\
-                            -e REDIS_PORT=6379 \\
+                            -e SPRING_MONGODB_URI=mongodb://mongodb:27017/jkypch \\
+                            -e SPRING_DATA_REDIS_HOST=redis \\
+                            -e SPRING_DATA_REDIS_PORT=6379 \\
+                            -e ORACLE_URL=\${ORACLE_URL:-} \\
+                            -e ORACLE_USER=\${ORACLE_USER:-} \\
+                            -e ORACLE_PASS=\${ORACLE_PASS:-} \\
                             ${image}
                     """
                 }
