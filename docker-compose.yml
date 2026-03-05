@@ -92,6 +92,7 @@ services:
       - JENKINS_OPTS=--prefix=/jenkins
       - CASC_JENKINS_CONFIG=/var/jenkins_home/casc
       - HOST_PROJECT_PATH=${HOST_PROJECT_PATH:-/workspace}
+      - JENKINS_ADMIN_PASSWORD=${JENKINS_ADMIN_PASSWORD:-admin}
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:8080/jenkins/login > /dev/null"]
       interval: 15s
