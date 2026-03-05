@@ -6,34 +6,23 @@ RUN npm ci
 COPY frontend/ ./
 RUN npm run build
 
-# Stage 2: Build Spring Boot (eclipse-temurin:21-jdk + Gradle)
-# Gradle 8.14 cannot run on JDK 25 (IllegalArgumentException: 25.0.2)
-FROM eclipse-temurin:21-jdk AS backend-build
+# Stage 2: Build Spring Boot (Maven + JDK 21)
+FROM maven:3.9-eclipse-temurin-21 AS backend-build
 WORKDIR /app
 
-# Gradle 설치
-ARG GRADLE_VERSION=8.14
-RUN apt-get update -qq && apt-get install -y --no-install-recommends unzip curl && \
-    curl -fsSL "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" \
-        -o /tmp/gradle.zip && \
-    unzip -q /tmp/gradle.zip -d /opt && \
-    ln -s /opt/gradle-${GRADLE_VERSION}/bin/gradle /usr/local/bin/gradle && \
-    rm /tmp/gradle.zip && \
-    rm -rf /var/lib/apt/lists/*
-
 # dependency cache
-COPY build.gradle.kts settings.gradle.kts ./
-RUN gradle dependencies --no-daemon -q 2>/dev/null || true
+COPY pom.xml ./
+RUN mvn dependency:go-offline -q
 
-# 소스 빌드
+# 소스 빌드 (frontend는 Stage 1에서 완성)
 COPY src/ src/
 COPY --from=frontend-build /app/dist src/main/resources/static/
-RUN gradle bootJar --no-daemon -x frontendInstall -x frontendBuild -x copyFrontend
+RUN mvn package -DskipTests -Dskip.frontend=true -q
 
 # Stage 3: Runtime
 FROM eclipse-temurin:25-jre
 RUN apt-get update -qq && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY --from=backend-build /app/build/libs/*.jar app.jar
+COPY --from=backend-build /app/target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]

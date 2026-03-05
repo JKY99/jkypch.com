@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>4.0.3</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>com.jkypch</groupId>
+  <artifactId>jkypch-web</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>jkypch-web</name>
+
+  <properties>
+    <java.version>21</java.version>
+    <!-- Docker 빌드 시 -Dskip.frontend=true 로 npm 단계 건너뜀 -->
+    <skip.frontend>false</skip.frontend>
+  </properties>
+
+  <dependencies>
+    <!-- Web -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <!-- JPA (Oracle) -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.oracle.database.jdbc</groupId>
+      <artifactId>ojdbc11</artifactId>
+      <version>23.7.0.25.01</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.oracle.database.jdbc</groupId>
+      <artifactId>ucp11</artifactId>
+      <version>23.7.0.25.01</version>
+      <scope>runtime</scope>
+    </dependency>
+
+    <!-- MyBatis -->
+    <dependency>
+      <groupId>org.mybatis.spring.boot</groupId>
+      <artifactId>mybatis-spring-boot-starter</artifactId>
+      <version>3.0.4</version>
+    </dependency>
+
+    <!-- MongoDB -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-mongodb</artifactId>
+    </dependency>
+
+    <!-- Redis -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
+
+    <!-- Actuator -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+
+    <!-- Test -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+
+      <!-- Frontend: npm ci + npm run build -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.3.0</version>
+        <executions>
+          <execution>
+            <id>frontend-install</id>
+            <phase>generate-resources</phase>
+            <goals><goal>exec</goal></goals>
+            <configuration>
+              <skip>${skip.frontend}</skip>
+              <workingDirectory>${project.basedir}/frontend</workingDirectory>
+              <executable>npm</executable>
+              <arguments><argument>ci</argument></arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>frontend-build</id>
+            <phase>generate-resources</phase>
+            <goals><goal>exec</goal></goals>
+            <configuration>
+              <skip>${skip.frontend}</skip>
+              <workingDirectory>${project.basedir}/frontend</workingDirectory>
+              <executable>npm</executable>
+              <arguments>
+                <argument>run</argument>
+                <argument>build</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Frontend: frontend/dist → target/classes/static -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-frontend</id>
+            <phase>process-resources</phase>
+            <goals><goal>copy-resources</goal></goals>
+            <configuration>
+              <skip>${skip.frontend}</skip>
+              <outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${project.basedir}/frontend/dist</directory>
+                  <filtering>false</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

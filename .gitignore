@@ -1,9 +1,8 @@
 .env
 *.log
 
-# Gradle
-web/.gradle/
-web/build/
+# Maven
+web/target/
 
 # Node
 web/frontend/node_modules/
