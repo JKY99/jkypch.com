@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jkypch.web.repository.mybatis.VisitLogMapper">
+
+    <resultMap id="visitLogMap" type="com.jkypch.web.domain.VisitLog">
+        <id property="id" column="ID"/>
+        <result property="path" column="PATH"/>
+        <result property="method" column="METHOD"/>
+        <result property="ip" column="IP"/>
+        <result property="statusCode" column="STATUS_CODE"/>
+        <result property="userAgent" column="USER_AGENT"/>
+        <result property="createdAt" column="CREATED_AT"/>
+    </resultMap>
+
+    <select id="findRecent" resultMap="visitLogMap">
+        SELECT ID, PATH, METHOD, IP, STATUS_CODE, USER_AGENT, CREATED_AT
+        FROM VISIT_LOG
+        ORDER BY CREATED_AT DESC
+        FETCH FIRST #{limit} ROWS ONLY
+    </select>
+
+    <select id="findByPath" resultMap="visitLogMap">
+        SELECT ID, PATH, METHOD, IP, STATUS_CODE, USER_AGENT, CREATED_AT
+        FROM VISIT_LOG
+        WHERE PATH = #{path}
+        ORDER BY CREATED_AT DESC
+        FETCH FIRST #{limit} ROWS ONLY
+    </select>
+
+</mapper>

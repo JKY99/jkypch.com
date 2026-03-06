@@ -58,7 +58,7 @@ public class DatabaseConfig {
         factory.setJpaVendorAdapter(adapter);
 
         var props = new Properties();
-        props.setProperty("hibernate.hbm2ddl.auto", "none");
+        props.setProperty("hibernate.hbm2ddl.auto", "update");
         props.setProperty("hibernate.show_sql", "false");
         factory.setJpaProperties(props);
 
