@@ -51,15 +51,15 @@
 
     <resultMap id="pageStatMap" type="com.jkypch.web.dto.PageStatDto">
         <constructor>
-            <arg column="PATH" javaType="String"/>
-            <arg column="CNT" javaType="long"/>
+            <arg column="PATH" javaType="java.lang.String"/>
+            <arg column="CNT" javaType="java.lang.Long"/>
         </constructor>
     </resultMap>
 
     <resultMap id="dailyStatMap" type="com.jkypch.web.dto.DailyStatDto">
         <constructor>
-            <arg column="STAT_DATE" javaType="String"/>
-            <arg column="CNT" javaType="long"/>
+            <arg column="STAT_DATE" javaType="java.lang.String"/>
+            <arg column="CNT" javaType="java.lang.Long"/>
         </constructor>
     </resultMap>
 
