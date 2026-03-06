@@ -49,16 +49,30 @@
         SELECT COUNT(DISTINCT IP) FROM VISIT_LOG
     </select>
 
-    <select id="topPages" resultType="com.jkypch.web.dto.PageStatDto">
-        SELECT PATH as path, COUNT(*) as count
+    <resultMap id="pageStatMap" type="com.jkypch.web.dto.PageStatDto">
+        <constructor>
+            <arg column="PATH" javaType="String"/>
+            <arg column="CNT" javaType="long"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="dailyStatMap" type="com.jkypch.web.dto.DailyStatDto">
+        <constructor>
+            <arg column="STAT_DATE" javaType="String"/>
+            <arg column="CNT" javaType="long"/>
+        </constructor>
+    </resultMap>
+
+    <select id="topPages" resultMap="pageStatMap">
+        SELECT PATH, COUNT(*) AS CNT
         FROM VISIT_LOG
         GROUP BY PATH
         ORDER BY COUNT(*) DESC
         FETCH FIRST #{limit} ROWS ONLY
     </select>
 
-    <select id="dailyTrend" resultType="com.jkypch.web.dto.DailyStatDto">
-        SELECT TO_CHAR(TRUNC(CREATED_AT), 'YYYY-MM-DD') as date, COUNT(*) as count
+    <select id="dailyTrend" resultMap="dailyStatMap">
+        SELECT TO_CHAR(TRUNC(CREATED_AT), 'YYYY-MM-DD') AS STAT_DATE, COUNT(*) AS CNT
         FROM VISIT_LOG
         WHERE CREATED_AT >= TRUNC(SYSDATE) - #{days} + 1
         GROUP BY TRUNC(CREATED_AT)
