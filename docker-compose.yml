@@ -239,6 +239,17 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  oracle-exporter:
+    image: iamseth/oracledb_exporter:0.6.0
+    expose:
+      - "9161"
+    environment:
+      - DATA_SOURCE_NAME=oracle://${ORACLE_USER:-jkypch}:${ORACLE_PASS:-jkypch}@oracle:1521/XEPDB1
+    depends_on:
+      oracle:
+        condition: service_healthy
+    restart: unless-stopped
+
   # ─────────────────────────────────────
   # 6. Oracle XE (로그 및 테스트 데이터)
   # ─────────────────────────────────────
@@ -248,8 +259,8 @@ services:
       - "1521"
     environment:
       - ORACLE_PASSWORD=${ORACLE_SYS_PASS:-oracle}
-      - APP_USER=jkypch
-      - APP_USER_PASSWORD=${ORACLE_APP_PASS:-jkypch}
+      - APP_USER=${ORACLE_USER:-jkypch}
+      - APP_USER_PASSWORD=${ORACLE_PASS:-jkypch}
     volumes:
       - oracle_data:/opt/oracle/oradata
     depends_on:

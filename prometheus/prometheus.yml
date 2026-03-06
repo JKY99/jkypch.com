@@ -25,6 +25,11 @@ scrape_configs:
     static_configs:
       - targets: ['redis-exporter:9121']
 
+  # Oracle XE
+  - job_name: 'oracle'
+    static_configs:
+      - targets: ['oracle-exporter:9161']
+
   # Prometheus 자체
   - job_name: 'prometheus'
     static_configs:
