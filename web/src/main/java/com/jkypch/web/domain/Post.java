@@ -24,7 +24,7 @@ public class Post {
         this.excerpt = excerpt;
         this.content = content;
         this.date = date;
-        this.tags = tags;
+        this.tags = List.copyOf(tags);
     }
 
     public Post(String title, String excerpt, String content, String date, List<String> tags) {
@@ -32,7 +32,7 @@ public class Post {
         this.excerpt = excerpt;
         this.content = content;
         this.date = date;
-        this.tags = tags;
+        this.tags = List.copyOf(tags);
     }
 
     public String getId() { return id; }
@@ -40,5 +40,5 @@ public class Post {
     public String getExcerpt() { return excerpt; }
     public String getContent() { return content; }
     public String getDate() { return date; }
-    public List<String> getTags() { return tags; }
+    public List<String> getTags() { return List.copyOf(tags); }
 }

@@ -4,6 +4,8 @@ import com.jkypch.web.domain.VisitLog;
 import com.jkypch.web.repository.jpa.VisitLogRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -11,6 +13,8 @@ import org.springframework.web.servlet.HandlerInterceptor;
 @Component
 @ConditionalOnExpression("!'${spring.datasource.oracle.url:}'.isEmpty()")
 public class VisitLogInterceptor implements HandlerInterceptor {
+
+    private static final Logger log = LoggerFactory.getLogger(VisitLogInterceptor.class);
 
     private final VisitLogRepository visitLogRepository;
 
@@ -32,6 +36,8 @@ public class VisitLogInterceptor implements HandlerInterceptor {
                 response.getStatus(),
                 request.getHeader("User-Agent")
             ));
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            log.warn("visit log save failed: {}", e.getMessage());
+        }
     }
 }
