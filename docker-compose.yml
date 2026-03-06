@@ -124,6 +124,7 @@ services:
       - ORACLE_URL=${ORACLE_URL:-jdbc:oracle:thin:@//oracle:1521/XEPDB1}
       - ORACLE_USER=${ORACLE_USER:-jkypch}
       - ORACLE_PASS=${ORACLE_PASS:-jkypch}
+      - JWT_SECRET=${JWT_SECRET:-changeme-default-secret-key-32ch}
       - MONGODB_URI=mongodb://mongodb:27017/jkypch
       - SPRING_MONGODB_URI=mongodb://mongodb:27017/jkypch
       - SPRING_DATA_REDIS_HOST=redis
@@ -154,6 +155,7 @@ services:
       - ORACLE_URL=${ORACLE_URL:-jdbc:oracle:thin:@//oracle:1521/XEPDB1}
       - ORACLE_USER=${ORACLE_USER:-jkypch}
       - ORACLE_PASS=${ORACLE_PASS:-jkypch}
+      - JWT_SECRET=${JWT_SECRET:-changeme-default-secret-key-32ch}
       - MONGODB_URI=mongodb://mongodb:27017/jkypch
       - SPRING_MONGODB_URI=mongodb://mongodb:27017/jkypch
       - SPRING_DATA_REDIS_HOST=redis

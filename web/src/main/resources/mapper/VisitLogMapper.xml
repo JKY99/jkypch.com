@@ -29,4 +29,40 @@
         FETCH FIRST #{limit} ROWS ONLY
     </select>
 
+    <select id="findPage" resultMap="visitLogMap">
+        SELECT ID, PATH, METHOD, IP, STATUS_CODE, USER_AGENT, CREATED_AT
+        FROM VISIT_LOG
+        ORDER BY CREATED_AT DESC
+        OFFSET #{offset} ROWS FETCH NEXT #{limit} ROWS ONLY
+    </select>
+
+    <select id="countTotal" resultType="long">
+        SELECT COUNT(*) FROM VISIT_LOG
+    </select>
+
+    <select id="countToday" resultType="long">
+        SELECT COUNT(*) FROM VISIT_LOG
+        WHERE TRUNC(CREATED_AT) = TRUNC(SYSDATE)
+    </select>
+
+    <select id="countUniqueIps" resultType="long">
+        SELECT COUNT(DISTINCT IP) FROM VISIT_LOG
+    </select>
+
+    <select id="topPages" resultType="com.jkypch.web.dto.PageStatDto">
+        SELECT PATH as path, COUNT(*) as count
+        FROM VISIT_LOG
+        GROUP BY PATH
+        ORDER BY COUNT(*) DESC
+        FETCH FIRST #{limit} ROWS ONLY
+    </select>
+
+    <select id="dailyTrend" resultType="com.jkypch.web.dto.DailyStatDto">
+        SELECT TO_CHAR(TRUNC(CREATED_AT), 'YYYY-MM-DD') as date, COUNT(*) as count
+        FROM VISIT_LOG
+        WHERE CREATED_AT >= TRUNC(SYSDATE) - #{days} + 1
+        GROUP BY TRUNC(CREATED_AT)
+        ORDER BY TRUNC(CREATED_AT)
+    </select>
+
 </mapper>
