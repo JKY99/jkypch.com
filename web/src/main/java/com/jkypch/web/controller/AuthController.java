@@ -11,6 +11,7 @@ import com.jkypch.web.security.JwtTokenProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -37,6 +38,7 @@ public class AuthController {
         this.refreshTokenRepository = refreshTokenRepository;
     }
 
+    @Transactional
     @PostMapping("/login")
     public LoginResponse login(@RequestBody LoginRequest req) {
         Authentication auth = authenticationManager.authenticate(
@@ -55,6 +57,7 @@ public class AuthController {
         return new LoginResponse(accessToken, refreshTokenValue, user.getRole().name());
     }
 
+    @Transactional
     @PostMapping("/refresh")
     public LoginResponse refresh(@RequestBody RefreshRequest req) {
         RefreshToken stored = refreshTokenRepository.findByToken(req.refreshToken())
