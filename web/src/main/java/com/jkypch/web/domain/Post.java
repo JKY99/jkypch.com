@@ -18,6 +18,15 @@ public class Post {
 
     public Post() {}
 
+    public Post(String id, String title, String excerpt, String content, String date, List<String> tags) {
+        this.id = id;
+        this.title = title;
+        this.excerpt = excerpt;
+        this.content = content;
+        this.date = date;
+        this.tags = tags;
+    }
+
     public Post(String title, String excerpt, String content, String date, List<String> tags) {
         this.title = title;
         this.excerpt = excerpt;

@@ -19,9 +19,8 @@ public class DataInitializer implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        if (postRepository.count() > 0) return;
-
         postRepository.save(new Post(
+            "prometheus-grafana-monitoring",
             "Prometheus + Grafana 모니터링 스택 구축 - Exporter란 무엇인가",
             "nginx, MongoDB, Redis를 Docker Compose로 운영할 때 Prometheus로 메트릭을 수집하고 Grafana로 시각화하는 과정. " +
             "Exporter가 왜 필요한지, 각 서비스가 Prometheus 포맷을 직접 제공하지 못하는 이유부터 실제 구성까지 다룬다.",
@@ -44,12 +43,7 @@ public class DataInitializer implements ApplicationRunner {
 
 ## 전체 구성
 
-```
-[Spring Boot]  ──────────────────────────────────────┐
-[nginx]  →  nginx-exporter  ─────────────────────────┤
-[MongoDB]  →  mongodb-exporter  ─────────────────────┼─→  Prometheus  →  Grafana
-[Redis]  →  redis-exporter  ─────────────────────────┘
-```
+![모니터링 흐름도](/images/monitoring-flow.svg)
 
 Prometheus는 각 타겟에서 **주기적으로 메트릭을 pull**한다. 이 pull 방식이 push 방식과 다른 핵심이다. 서비스가 Prometheus에게 데이터를 보내는 게 아니라, Prometheus가 서비스에게 직접 가져간다.
 
