@@ -150,6 +150,47 @@
   margin-bottom: var(--gap-md);
 }
 
+/* ── Post cards ── */
+.grid { display: grid; gap: var(--gap-lg); }
+
+.cardLink {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.card {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--gap-lg);
+  transition: border-color var(--transition);
+}
+.cardLink:hover .card { border-color: var(--orange); }
+
+.cardMeta { margin-bottom: var(--gap-sm); }
+
+.date {
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+  color: var(--text-3);
+}
+
+.cardTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-1);
+  margin-bottom: var(--gap-sm);
+  line-height: 1.4;
+}
+
+.excerpt {
+  font-size: 0.875rem;
+  color: var(--text-2);
+  line-height: 1.65;
+  margin-bottom: var(--gap-md);
+}
+
 /* ── Mobile ── */
 @media (max-width: 600px) {
   .hero { min-height: 70vh; padding-top: var(--gap-2xl); }
