@@ -83,15 +83,20 @@
   gap: var(--gap-lg);
 }
 
+.cardLink {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
 .card {
   background: var(--bg-1);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: var(--gap-lg);
   transition: border-color var(--transition);
-  cursor: pointer;
 }
-.card:hover { border-color: var(--orange); }
+.cardLink:hover .card { border-color: var(--orange); }
 
 .cardMeta { margin-bottom: var(--gap-sm); }
 

@@ -214,8 +214,10 @@ services:
     image: percona/mongodb_exporter:0.40
     expose:
       - "9216"
-    environment:
-      - MONGODB_URI=mongodb://mongodb:27017
+    command:
+      - '--mongodb.uri=mongodb://mongodb:27017'
+      - '--collect-all'
+      - '--compatible-mode'
     depends_on:
       mongodb:
         condition: service_healthy
