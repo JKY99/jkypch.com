@@ -16,7 +16,6 @@ spring:
       url: ${ORACLE_URL:}
       username: ${ORACLE_USER:}
       password: ${ORACLE_PASS:}
-      driver-class-name: oracle.jdbc.OracleDriver
 
   # JPA
   jpa:

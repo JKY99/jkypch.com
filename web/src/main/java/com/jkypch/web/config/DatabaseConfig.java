@@ -5,8 +5,8 @@ import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.jdbc.autoconfigure.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -40,8 +40,15 @@ public class DatabaseConfig {
     @Bean
     @Primary
     @ConfigurationProperties("spring.datasource.oracle")
-    public DataSource oracleDataSource() {
-        return DataSourceBuilder.create().build();
+    public DataSourceProperties oracleDataSourceProperties() {
+        return new DataSourceProperties();
+    }
+
+    @Bean
+    @Primary
+    public DataSource oracleDataSource(
+            @Qualifier("oracleDataSourceProperties") DataSourceProperties props) {
+        return props.initializeDataSourceBuilder().build();
     }
 
     @Bean
