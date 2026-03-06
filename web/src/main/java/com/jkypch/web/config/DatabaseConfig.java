@@ -67,6 +67,8 @@ public class DatabaseConfig {
         var props = new Properties();
         props.setProperty("hibernate.hbm2ddl.auto", "update");
         props.setProperty("hibernate.show_sql", "false");
+        props.setProperty("hibernate.physical_naming_strategy",
+                "org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy");
         factory.setJpaProperties(props);
 
         return factory;
