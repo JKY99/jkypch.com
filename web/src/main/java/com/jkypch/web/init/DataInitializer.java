@@ -125,9 +125,20 @@ Servlet과 JSP만 존재하던 시절의 구조적 한계에서 출발해, Sprin
 
 ### 당시 코드
 
+```xml
+<!-- web.xml — Servlet 등록 (당시 유일한 방법) -->
+<servlet>
+    <servlet-name>orderServlet</servlet-name>
+    <servlet-class>com.example.OrderServlet</servlet-class>
+</servlet>
+<servlet-mapping>
+    <servlet-name>orderServlet</servlet-name>
+    <url-pattern>/order</url-pattern>
+</servlet-mapping>
+```
+
 ```java
 // 주문 처리 Servlet — 모든 것이 하나의 클래스에
-@WebServlet("/order")
 public class OrderServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
@@ -175,8 +186,12 @@ public class OrderServlet extends HttpServlet {
 <%-- order-result.jsp — 비즈니스 로직이 뒤섞인 뷰 --%>
 <%
     // JSP 안에서 또 DB 조회
-    Connection conn = DriverManager.getConnection(...);
-    ResultSet rs = conn.prepareStatement("SELECT * FROM orders WHERE user_id=?")...
+    Connection conn = DriverManager.getConnection(
+        "jdbc:mysql://localhost/shop", "root", "password");
+    PreparedStatement ps = conn.prepareStatement(
+        "SELECT * FROM orders WHERE user_id = ?");
+    ps.setString(1, request.getParameter("userId"));
+    ResultSet rs = ps.executeQuery();
 %>
 <html>
 <body>
@@ -209,6 +224,8 @@ public class OrderServlet extends HttpServlet {
 ---
 
 ## 2단계: Spring Framework 등장 (2003~2004)
+
+당시 Sun Microsystems가 제시한 "정석"은 **EJB(Enterprise JavaBeans)**였다. 트랜잭션 관리, 분산 객체, 보안 등 엔터프라이즈에 필요한 기능을 컨테이너가 제공하되, 그 대가로 복잡한 인터페이스 구현과 XML 배포 서술자를 요구했다. 작은 비즈니스 로직 하나를 위해 Home 인터페이스, Remote 인터페이스, 배포 서술자를 작성해야 하는 구조는 과도한 무게였다.
 
 Rod Johnson이 저서 *Expert One-on-One J2EE Design and Development*에서 제시한 핵심 주장은 단순했다: **"EJB 없이도 엔터프라이즈 애플리케이션을 만들 수 있다."**
 
@@ -314,69 +331,75 @@ public void placeOrder(Order order) {
 
 Servlet 하나가 모든 것을 처리하는 대신, 진입점을 **단일 Servlet(DispatcherServlet)**으로 통일하고 역할을 분리했다.
 
-<svg viewBox="0 0 720 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;margin:1.5rem auto;display:block;border-radius:8px">
+<svg viewBox="0 0 720 460" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;margin:1.5rem auto;display:block;border-radius:8px">
   <defs>
     <marker id="s3-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#555"/></marker>
     <marker id="s3-bl" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4a6a9a"/></marker>
   </defs>
-  <rect width="720" height="400" rx="8" fill="#161616"/>
+  <rect width="720" height="460" rx="8" fill="#161616"/>
   <text x="14" y="18" fill="#555" font-family="monospace" font-size="11">Spring MVC 아키텍처 — Front Controller 패턴</text>
 
   <!-- Browser -->
-  <rect x="20" y="170" width="120" height="44" rx="6" fill="#252525" stroke="#3a3a3a" stroke-width="1.5"/>
-  <text x="80" y="190" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="12" font-weight="600">Browser</text>
-  <text x="80" y="206" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">Request</text>
+  <rect x="20" y="136" width="120" height="44" rx="6" fill="#252525" stroke="#3a3a3a" stroke-width="1.5"/>
+  <text x="80" y="156" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="12" font-weight="600">Browser</text>
+  <text x="80" y="172" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">Request</text>
 
   <!-- Arrow Browser → DispatcherServlet -->
-  <line x1="140" y1="192" x2="186" y2="192" stroke="#555" stroke-width="1.5" marker-end="url(#s3-ar)"/>
+  <line x1="140" y1="158" x2="186" y2="158" stroke="#555" stroke-width="1.5" marker-end="url(#s3-ar)"/>
 
-  <!-- DispatcherServlet — center key component -->
-  <rect x="188" y="148" width="180" height="88" rx="6" fill="#0f1a2a" stroke="#4a7aaa" stroke-width="2"/>
-  <text x="278" y="172" text-anchor="middle" fill="#6aaaee" font-family="monospace" font-size="12" font-weight="600">DispatcherServlet</text>
-  <text x="278" y="190" text-anchor="middle" fill="#4a6a8a" font-family="monospace" font-size="10">단일 진입점 (Front Controller)</text>
-  <text x="278" y="206" text-anchor="middle" fill="#4a6a8a" font-family="monospace" font-size="10">web.xml 에 "/" 매핑</text>
-  <text x="278" y="222" text-anchor="middle" fill="#3a5a7a" font-family="monospace" font-size="10">요청 위임 · 응답 조합</text>
+  <!-- DispatcherServlet -->
+  <rect x="188" y="114" width="180" height="88" rx="6" fill="#0f1a2a" stroke="#4a7aaa" stroke-width="2"/>
+  <text x="278" y="138" text-anchor="middle" fill="#6aaaee" font-family="monospace" font-size="12" font-weight="600">DispatcherServlet</text>
+  <text x="278" y="156" text-anchor="middle" fill="#4a6a8a" font-family="monospace" font-size="10">단일 진입점 (Front Controller)</text>
+  <text x="278" y="172" text-anchor="middle" fill="#4a6a8a" font-family="monospace" font-size="10">web.xml 에 "/" 매핑</text>
+  <text x="278" y="188" text-anchor="middle" fill="#3a5a7a" font-family="monospace" font-size="10">요청 위임 · 응답 조합</text>
 
   <!-- HandlerMapping (top-right) -->
-  <rect x="430" y="40" width="200" height="50" rx="6" fill="#252525" stroke="#3a3a3a" stroke-width="1.5"/>
-  <text x="530" y="62" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="12">HandlerMapping</text>
-  <text x="530" y="79" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">URL → @Controller 매핑</text>
-  <line x1="368" y1="168" x2="430" y2="72" stroke="#4a6a9a" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#s3-bl)"/>
+  <rect x="440" y="36" width="200" height="50" rx="6" fill="#252525" stroke="#3a3a3a" stroke-width="1.5"/>
+  <text x="540" y="58" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="12">HandlerMapping</text>
+  <text x="540" y="75" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">URL → @Controller 매핑</text>
+  <line x1="368" y1="134" x2="440" y2="68" stroke="#4a6a9a" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#s3-bl)"/>
 
   <!-- Controller -->
-  <rect x="430" y="140" width="200" height="50" rx="6" fill="#252525" stroke="#3a3a3a" stroke-width="1.5"/>
-  <text x="530" y="162" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="12">@Controller</text>
-  <text x="530" y="179" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">요청 처리 · Service 호출</text>
-  <line x1="368" y1="192" x2="430" y2="165" stroke="#4a6a9a" stroke-width="1.5" marker-end="url(#s3-bl)"/>
+  <rect x="440" y="114" width="200" height="50" rx="6" fill="#252525" stroke="#3a3a3a" stroke-width="1.5"/>
+  <text x="540" y="136" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="12">@Controller</text>
+  <text x="540" y="153" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">요청 처리 · Service 호출</text>
+  <line x1="368" y1="158" x2="440" y2="139" stroke="#4a6a9a" stroke-width="1.5" marker-end="url(#s3-bl)"/>
 
-  <!-- Service -->
-  <rect x="460" y="236" width="140" height="44" rx="6" fill="#252525" stroke="#3a3a3a" stroke-width="1.5"/>
-  <text x="530" y="255" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="12">@Service</text>
-  <text x="530" y="271" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">비즈니스 로직</text>
-  <line x1="530" y1="190" x2="530" y2="236" stroke="#555" stroke-width="1.5" marker-end="url(#s3-ar)"/>
+  <!-- Service (right, below Controller) -->
+  <rect x="470" y="196" width="140" height="44" rx="6" fill="#252525" stroke="#3a3a3a" stroke-width="1.5"/>
+  <text x="540" y="215" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="12">@Service</text>
+  <text x="540" y="231" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">비즈니스 로직</text>
+  <line x1="540" y1="164" x2="540" y2="196" stroke="#555" stroke-width="1.5" marker-end="url(#s3-ar)"/>
 
   <!-- Repository -->
-  <rect x="460" y="326" width="140" height="44" rx="6" fill="#252525" stroke="#3a3a3a" stroke-width="1.5"/>
-  <text x="530" y="345" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="12">@Repository</text>
-  <text x="530" y="361" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">DB 접근</text>
-  <line x1="530" y1="280" x2="530" y2="326" stroke="#555" stroke-width="1.5" marker-end="url(#s3-ar)"/>
+  <rect x="470" y="274" width="140" height="44" rx="6" fill="#252525" stroke="#3a3a3a" stroke-width="1.5"/>
+  <text x="540" y="293" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="12">@Repository</text>
+  <text x="540" y="309" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">DB 접근</text>
+  <line x1="540" y1="240" x2="540" y2="274" stroke="#555" stroke-width="1.5" marker-end="url(#s3-ar)"/>
 
-  <!-- ViewResolver (bottom-right of dispatcher) -->
-  <rect x="430" y="256" width="200" height="50" rx="6" fill="#252525" stroke="#3a3a3a" stroke-width="1.5"/>
-  <text x="530" y="278" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="12">ViewResolver</text>
-  <text x="530" y="295" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">뷰 이름 → JSP 경로 변환</text>
+  <!-- ModelAndView (below DispatcherServlet) -->
+  <rect x="188" y="226" width="180" height="50" rx="6" fill="#1e1e10" stroke="#5a5a2a" stroke-width="1.5"/>
+  <text x="278" y="248" text-anchor="middle" fill="#aaaa60" font-family="monospace" font-size="12">ModelAndView</text>
+  <text x="278" y="265" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">데이터 + 뷰 이름 반환</text>
+  <line x1="278" y1="202" x2="278" y2="226" stroke="#555" stroke-width="1.5" marker-end="url(#s3-ar)"/>
 
-  <!-- Wait, ViewResolver conflicts with Service. Let me move ViewResolver -->
-  <!-- ModelAndView label below dispatcher -->
-  <rect x="188" y="256" width="180" height="50" rx="6" fill="#1e1e10" stroke="#5a5a2a" stroke-width="1.5"/>
-  <text x="278" y="278" text-anchor="middle" fill="#aaaa60" font-family="monospace" font-size="12">ModelAndView</text>
-  <text x="278" y="295" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">데이터 + 뷰 이름 반환</text>
-  <line x1="278" y1="236" x2="278" y2="256" stroke="#555" stroke-width="1.5" marker-end="url(#s3-ar)"/>
+  <!-- ViewResolver (below ModelAndView, left side) -->
+  <rect x="188" y="306" width="180" height="50" rx="6" fill="#252525" stroke="#3a3a3a" stroke-width="1.5"/>
+  <text x="278" y="328" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="12">ViewResolver</text>
+  <text x="278" y="345" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">뷰 이름 → JSP 경로 변환</text>
+  <line x1="278" y1="276" x2="278" y2="306" stroke="#555" stroke-width="1.5" marker-end="url(#s3-ar)"/>
 
-  <!-- Arrow ModelAndView → ViewResolver (reusing the box above needs repositioning) -->
-  <!-- Response to browser -->
-  <line x1="188" y1="192" x2="140" y2="192" stroke="#555" stroke-width="1.5" marker-end="url(#s3-ar)"/>
-  <text x="164" y="184" text-anchor="middle" fill="#555" font-family="monospace" font-size="9">HTML</text>
+  <!-- JSP (below ViewResolver) -->
+  <rect x="188" y="386" width="180" height="50" rx="6" fill="#221e0a" stroke="#7a6a2a" stroke-width="1.5"/>
+  <text x="278" y="408" text-anchor="middle" fill="#c8b040" font-family="monospace" font-size="12" font-weight="600">JSP</text>
+  <text x="278" y="425" text-anchor="middle" fill="#888" font-family="monospace" font-size="10">HTML 렌더링</text>
+  <line x1="278" y1="356" x2="278" y2="386" stroke="#555" stroke-width="1.5" marker-end="url(#s3-ar)"/>
+
+  <!-- Response back to Browser -->
+  <line x1="188" y1="411" x2="80" y2="411" stroke="#3d7a3d" stroke-width="1.5"/>
+  <line x1="80" y1="411" x2="80" y2="180" stroke="#3d7a3d" stroke-width="1.5" marker-end="url(#s3-ar)"/>
+  <text x="134" y="404" text-anchor="middle" fill="#3d6a3d" font-family="monospace" font-size="9">HTML Response</text>
 </svg>
 
 ### 당시 코드
@@ -468,8 +491,8 @@ public class AppConfig {
 ### REST API 중심 전환
 
 ```java
-// Spring 3.0+ — @ResponseBody로 JSON 직접 반환
-@RestController // @Controller + @ResponseBody
+// Spring 4.0+ — @RestController로 JSON 직접 반환
+@RestController // @Controller + @ResponseBody (Spring 4.0에서 도입)
 @RequestMapping("/api/orders")
 public class OrderApi {
 
@@ -488,6 +511,62 @@ public class OrderApi {
 ```
 
 뷰(JSP)가 없어지고 JSON을 직접 반환한다. 프론트엔드와 백엔드가 분리된다.
+
+<svg viewBox="0 0 720 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;margin:1.5rem auto;display:block;border-radius:8px">
+  <defs>
+    <marker id="s3b-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#555"/></marker>
+    <marker id="s3b-gn" markerWidth="8" markerHeight="6" refX="1" refY="3" orient="auto"><polygon points="8 0,0 3,8 6" fill="#3d7a3d"/></marker>
+  </defs>
+  <rect width="720" height="300" rx="8" fill="#161616"/>
+  <text x="14" y="18" fill="#555" font-family="monospace" font-size="11">Spring 3.x~4.x — REST API 중심 전환</text>
+
+  <!-- Frontend (SPA) -->
+  <rect x="20" y="80" width="130" height="60" rx="6" fill="#252525" stroke="#3a3a3a" stroke-width="1.5"/>
+  <text x="85" y="103" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="12" font-weight="600">Frontend</text>
+  <text x="85" y="120" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">SPA / 모바일 앱</text>
+  <text x="85" y="134" text-anchor="middle" fill="#555" font-family="monospace" font-size="9">별도 프로젝트</text>
+
+  <!-- Arrow Frontend → RestController -->
+  <line x1="150" y1="100" x2="206" y2="100" stroke="#555" stroke-width="1.5" marker-end="url(#s3b-ar)"/>
+  <text x="178" y="93" text-anchor="middle" fill="#555" font-family="monospace" font-size="9">JSON</text>
+
+  <!-- @RestController -->
+  <rect x="208" y="72" width="160" height="56" rx="6" fill="#0f1a2a" stroke="#4a7aaa" stroke-width="2"/>
+  <text x="288" y="95" text-anchor="middle" fill="#6aaaee" font-family="monospace" font-size="12" font-weight="600">@RestController</text>
+  <text x="288" y="115" text-anchor="middle" fill="#4a6a8a" font-family="monospace" font-size="10">@ResponseBody 내장</text>
+
+  <!-- Arrow → Service -->
+  <line x1="368" y1="100" x2="414" y2="100" stroke="#555" stroke-width="1.5" marker-end="url(#s3b-ar)"/>
+
+  <!-- @Service -->
+  <rect x="416" y="78" width="130" height="44" rx="6" fill="#252525" stroke="#3a3a3a" stroke-width="1.5"/>
+  <text x="481" y="98" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="12">@Service</text>
+  <text x="481" y="114" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">비즈니스 로직</text>
+
+  <!-- Arrow → Repository -->
+  <line x1="546" y1="100" x2="586" y2="100" stroke="#555" stroke-width="1.5" marker-end="url(#s3b-ar)"/>
+
+  <!-- @Repository -->
+  <rect x="588" y="78" width="110" height="44" rx="6" fill="#252525" stroke="#3a3a3a" stroke-width="1.5"/>
+  <text x="643" y="98" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="12">@Repository</text>
+  <text x="643" y="114" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">DB 접근</text>
+
+  <!-- JSON Response arrow back -->
+  <line x1="288" y1="128" x2="288" y2="148" stroke="#3d7a3d" stroke-width="1.5"/>
+  <line x1="288" y1="148" x2="85" y2="148" stroke="#3d7a3d" stroke-width="1.5" marker-end="url(#s3b-gn)"/>
+  <text x="186" y="164" text-anchor="middle" fill="#3d6a3d" font-family="monospace" font-size="10">JSON (Jackson 직렬화)</text>
+
+  <!-- 변화 비교 -->
+  <rect x="40" y="196" width="290" height="80" rx="6" fill="#1a0a0a" stroke="#5a2a2a" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="185" y="216" text-anchor="middle" fill="#aa5050" font-family="monospace" font-size="11" font-weight="600">Before (MVC)</text>
+  <text x="185" y="236" text-anchor="middle" fill="#885050" font-family="monospace" font-size="10">Controller → ModelAndView → ViewResolver → JSP</text>
+  <text x="185" y="256" text-anchor="middle" fill="#664040" font-family="monospace" font-size="10">서버가 HTML을 직접 렌더링</text>
+
+  <rect x="390" y="196" width="290" height="80" rx="6" fill="#0a1a0a" stroke="#2e5c2e" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="535" y="216" text-anchor="middle" fill="#4a8a4a" font-family="monospace" font-size="11" font-weight="600">After (REST)</text>
+  <text x="535" y="236" text-anchor="middle" fill="#3a6a3a" font-family="monospace" font-size="10">@RestController → JSON 직접 반환</text>
+  <text x="535" y="256" text-anchor="middle" fill="#2a4a2a" font-family="monospace" font-size="10">ViewResolver/JSP 불필요, 프론트 분리</text>
+</svg>
 
 ### 이 시점의 여전한 문제
 
@@ -647,12 +726,14 @@ spring:
   <text x="569" y="332" text-anchor="middle" fill="#606030" font-family="monospace" font-size="10">@RequestBody / @PathVariable / @RequestParam 바인딩</text>
   <line x1="504" y1="268" x2="504" y2="296" stroke="#555" stroke-width="1.5" stroke-dasharray="3,2" marker-end="url(#s4b-ar)"/>
 
-  <!-- Response arrow back -->
-  <line x1="120" y1="228" x2="150" y2="228" stroke="#3d7a3d" stroke-width="1.5"/>
-  <line x1="150" y1="228" x2="150" y2="248" stroke="#3d7a3d" stroke-width="1.5"/>
-  <line x1="150" y1="248" x2="504" y2="248" stroke="#3d7a3d" stroke-width="1.5"/>
-  <line x1="504" y1="248" x2="504" y2="268" stroke="#3d7a3d" stroke-width="1.5" marker-end="url(#s4b-ar)"/>
-  <text x="300" y="264" text-anchor="middle" fill="#3d6a3d" font-family="monospace" font-size="10">JSON Response (Jackson 직렬화)</text>
+  <!-- Response arrow back (right-to-left: Controller → DispatcherServlet → Tomcat → Browser) -->
+  <defs>
+    <marker id="s4b-gn" markerWidth="8" markerHeight="6" refX="1" refY="3" orient="auto"><polygon points="8 0,0 3,8 6" fill="#3d7a3d"/></marker>
+  </defs>
+  <line x1="612" y1="174" x2="612" y2="290" stroke="#3d7a3d" stroke-width="1.5"/>
+  <line x1="612" y1="290" x2="70" y2="290" stroke="#3d7a3d" stroke-width="1.5"/>
+  <line x1="70" y1="290" x2="70" y2="230" stroke="#3d7a3d" stroke-width="1.5" marker-end="url(#s4b-gn)"/>
+  <text x="340" y="284" text-anchor="middle" fill="#3d6a3d" font-family="monospace" font-size="10">JSON Response (Jackson 직렬화)</text>
 
   <!-- Startup boxes at bottom -->
   <rect x="20" y="354" width="310" height="50" rx="6" fill="#0a1a0a" stroke="#2e5c2e" stroke-width="1.5"/>
