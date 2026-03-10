@@ -6,6 +6,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.List;
 
 @Component
@@ -26,6 +27,7 @@ public class DataInitializer implements ApplicationRunner {
             "위의 인터랙티브 도구로 버전별 선택 가능한 조합을 직접 확인할 수 있다.",
             SPRING_GUIDE_CONTENT,
             "2026-03-10",
+            Instant.parse("2026-03-10T03:00:00Z"),
             List.of("Spring Framework", "Spring Boot", "Java", "LTS", "Dependencies")
         ));
 
@@ -36,6 +38,7 @@ public class DataInitializer implements ApplicationRunner {
             "\"문제 → 해결 → 발전\" 구조로 Java 웹 아키텍처의 진화를 설명한다.",
             JAVA_WEB_EVOLUTION_CONTENT,
             "2026-03-10",
+            Instant.parse("2026-03-10T02:00:00Z"),
             List.of("Java", "Spring Framework", "Spring Boot", "Servlet", "Architecture", "Backend")
         ));
 
@@ -46,6 +49,7 @@ public class DataInitializer implements ApplicationRunner {
             "Exporter가 왜 필요한지, 각 서비스가 Prometheus 포맷을 직접 제공하지 못하는 이유부터 실제 구성까지 다룬다.",
             CONTENT,
             "2026-03-06",
+            Instant.parse("2026-03-06T09:00:00Z"),
             List.of("Docker", "Prometheus", "Grafana", "nginx", "MongoDB", "Redis", "Monitoring")
         ));
     }

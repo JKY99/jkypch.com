@@ -21,7 +21,7 @@ public class PostController {
 
     @GetMapping
     public List<PostSummary> list() {
-        return postRepository.findAllByOrderByDateDesc().stream()
+        return postRepository.findAllByOrderByCreatedAtDesc().stream()
                 .map(p -> new PostSummary(p.getId(), p.getTitle(), p.getDate(), p.getTags(), p.getExcerpt()))
                 .toList();
     }
