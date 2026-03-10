@@ -30,6 +30,16 @@ public class DataInitializer implements ApplicationRunner {
         ));
 
         postRepository.save(new Post(
+            "java-web-architecture-evolution",
+            "Java 웹 개발 아키텍처의 변천사 — Servlet부터 Spring Boot까지",
+            "Servlet/JSP 시대의 구조적 한계, Spring IoC/AOP가 해결한 것, Spring MVC 등장, 그리고 Spring Boot까지 " +
+            "\"문제 → 해결 → 발전\" 구조로 Java 웹 아키텍처의 진화를 설명한다.",
+            JAVA_WEB_EVOLUTION_CONTENT,
+            "2026-03-10",
+            List.of("Java", "Spring Framework", "Spring Boot", "Servlet", "Architecture", "Backend")
+        ));
+
+        postRepository.save(new Post(
             "prometheus-grafana-monitoring",
             "Prometheus + Grafana 모니터링 스택 구축 - Exporter란 무엇인가",
             "nginx, MongoDB, Redis를 Docker Compose로 운영할 때 Prometheus로 메트릭을 수집하고 Grafana로 시각화하는 과정. " +
@@ -39,6 +49,473 @@ public class DataInitializer implements ApplicationRunner {
             List.of("Docker", "Prometheus", "Grafana", "nginx", "MongoDB", "Redis", "Monitoring")
         ));
     }
+
+    private static final String JAVA_WEB_EVOLUTION_CONTENT = """
+# Java 웹 개발 아키텍처의 변천사
+
+## 들어가며
+
+레거시 시스템을 처음 마주했을 때 느끼는 당혹감은 대부분 "왜 이런 구조인가?"에서 온다. 현재의 Spring Boot 구조만 알고 있으면 이전 코드가 이상하게 보인다. 반대로 과거의 문제를 알면 현재의 설계가 왜 그렇게 됐는지 이해된다.
+
+이 글은 Java 웹의 기술 변천을 연대기 나열이 아닌 **"문제 → 해결 → 발전"** 구조로 설명한다.
+
+---
+
+## 1단계: Servlet + JSP + JDBC (2000년대 초반)
+
+### 당시 아키텍처
+
+```
+Browser
+  │
+  ▼
+[Web Server (Apache)]
+  │  static files
+  ├──────────────────────────▶ HTML/CSS/JS
+  │
+  │  dynamic request
+  ▼
+[Servlet Container (Tomcat)]
+  │
+  ├── HttpServlet (요청 처리 + 비즈니스 로직)
+  │     │
+  │     └── JDBC → [Database]
+  │
+  └── JSP (응답 HTML 생성)
+```
+
+### 당시 코드
+
+```java
+// 주문 처리 Servlet — 모든 것이 하나의 클래스에
+@WebServlet("/order")
+public class OrderServlet extends HttpServlet {
+
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        // 1) 요청 파라미터 파싱
+        String userId = req.getParameter("userId");
+        int itemId = Integer.parseInt(req.getParameter("itemId"));
+
+        // 2) DB 연결 — 매 요청마다 직접 생성
+        Connection conn = null;
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            conn = DriverManager.getConnection(
+                "jdbc:mysql://localhost/shop", "root", "password");
+
+            // 3) 비즈니스 로직 (재고 확인, 주문 생성 등)
+            PreparedStatement ps = conn.prepareStatement(
+                "SELECT stock FROM items WHERE id = ?");
+            ps.setInt(1, itemId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next() && rs.getInt("stock") > 0) {
+                PreparedStatement ins = conn.prepareStatement(
+                    "INSERT INTO orders (user_id, item_id) VALUES (?, ?)");
+                ins.setString(1, userId);
+                ins.setInt(2, itemId);
+                ins.executeUpdate();
+            }
+
+            // 4) JSP로 포워드
+            req.setAttribute("message", "주문 완료");
+            req.getRequestDispatcher("/order-result.jsp")
+               .forward(req, resp);
+
+        } catch (Exception e) {
+            throw new ServletException(e);
+        } finally {
+            if (conn != null) try { conn.close(); } catch (SQLException e) {}
+        }
+    }
+}
+```
+
+```jsp
+<%-- order-result.jsp — 비즈니스 로직이 뒤섞인 뷰 --%>
+<%
+    // JSP 안에서 또 DB 조회
+    Connection conn = DriverManager.getConnection(...);
+    ResultSet rs = conn.prepareStatement("SELECT * FROM orders WHERE user_id=?")...
+%>
+<html>
+<body>
+  <h1>주문 내역</h1>
+  <% while (rs.next()) { %>
+    <p><%= rs.getString("item_name") %></p>
+  <% } %>
+</body>
+</html>
+```
+
+### 구조적 문제점
+
+**강한 결합(Tight Coupling)**
+- 요청 파싱 / 비즈니스 로직 / DB 접근 / 뷰 렌더링이 하나의 클래스(또는 JSP)에 뒤섞임
+- 기능 하나를 수정하면 연쇄 변경 발생
+
+**트랜잭션 관리 불가**
+- DB 연결을 매 요청마다 `new`로 생성 → 성능 문제
+- 트랜잭션 커밋/롤백을 개발자가 일일이 try-finally로 처리
+- 여러 DB 작업을 하나의 트랜잭션으로 묶기가 매우 어려움
+
+**테스트 불가능**
+- `HttpServletRequest`, `HttpServletResponse`에 직접 의존
+- 비즈니스 로직을 단위 테스트하려면 웹 컨테이너 전체를 올려야 함
+
+**중복 코드**
+- DB 연결, 예외 처리, JSP 포워드 코드가 모든 Servlet에 반복
+
+---
+
+## 2단계: Spring Framework 등장 (2003~2004)
+
+Rod Johnson이 저서 *Expert One-on-One J2EE Design and Development*에서 제시한 핵심 주장은 단순했다: **"EJB 없이도 엔터프라이즈 애플리케이션을 만들 수 있다."**
+
+### 해결 방법: IoC 컨테이너
+
+문제의 근원은 객체가 자신의 의존성을 직접 생성한다는 것이었다.
+
+```java
+// Before: 강한 결합
+class OrderService {
+    private OrderRepository repo = new OrderRepositoryImpl(); // 직접 생성
+    private PaymentService pay = new PaymentServiceImpl();    // 직접 생성
+}
+
+// After: DI — 외부에서 주입
+class OrderService {
+    private final OrderRepository repo;
+    private final PaymentService pay;
+
+    // 생성자를 통해 주입받음 — 어떤 구현체인지 모름
+    public OrderService(OrderRepository repo, PaymentService pay) {
+        this.repo = repo;
+        this.pay = pay;
+    }
+}
+```
+
+Spring IoC 컨테이너(ApplicationContext)가 객체의 생성과 연결을 담당한다. 개발자는 어떤 구현체를 쓸지 XML(또는 이후 Java Config)로 선언만 하면 된다.
+
+### 해결 방법: AOP (Aspect-Oriented Programming)
+
+트랜잭션, 로깅, 보안 같은 **횡단 관심사**를 비즈니스 코드에서 분리한다.
+
+```java
+// Before: 트랜잭션 코드가 비즈니스 코드를 오염
+public void placeOrder(Order order) {
+    Connection conn = dataSource.getConnection();
+    conn.setAutoCommit(false);
+    try {
+        orderRepo.save(order);           // 실제 비즈니스
+        inventoryRepo.reduce(order);     // 실제 비즈니스
+        conn.commit();
+    } catch (Exception e) {
+        conn.rollback();
+        throw e;
+    } finally {
+        conn.close();
+    }
+}
+
+// After: @Transactional — AOP 프록시가 처리
+@Transactional
+public void placeOrder(Order order) {
+    orderRepo.save(order);       // 비즈니스만
+    inventoryRepo.reduce(order); // 비즈니스만
+}
+```
+
+`@Transactional`이 붙은 메서드는 AOP 프록시로 감싸지고, 트랜잭션 시작/커밋/롤백은 프레임워크가 자동 처리한다.
+
+### 초기 Spring 아키텍처
+
+```
+[applicationContext.xml]
+  │  <bean> 선언
+  ▼
+[Spring IoC Container]
+  ├── OrderService (bean)
+  │     └── OrderRepository (bean, DI 주입)
+  │           └── JdbcTemplate → [Database]
+  │
+  └── AOP Proxy
+        └── @Transactional 처리
+```
+
+이 시점의 Spring은 여전히 Servlet/JSP와 함께 사용됐다. MVC 레이어는 별도였다.
+
+---
+
+## 3단계: Spring MVC 등장 (Spring 2.0~2.5, 2006~2007)
+
+### 해결한 문제: MVC 패턴의 체계화
+
+Servlet 하나가 모든 것을 처리하는 대신, 진입점을 **단일 Servlet(DispatcherServlet)**으로 통일하고 역할을 분리했다.
+
+```
+Browser
+  │
+  ▼
+[DispatcherServlet]  ← web.xml에 "/" 매핑
+  │
+  ├── HandlerMapping  ─── URL을 Controller로 매핑
+  │
+  ├── Controller      ─── 요청 처리, 비즈니스 호출
+  │     └── Service
+  │           └── Repository → [Database]
+  │
+  ├── ModelAndView    ─── 데이터 + 뷰 이름
+  │
+  └── ViewResolver    ─── 뷰 이름 → JSP/Thymeleaf
+        └── View (JSP) → HTML 응답
+```
+
+### 당시 코드
+
+```java
+// Spring MVC Controller (2.x 시대 — 인터페이스 구현 방식)
+public class OrderController implements Controller {
+
+    private OrderService orderService;
+
+    public void setOrderService(OrderService orderService) {
+        this.orderService = orderService; // XML에서 DI
+    }
+
+    @Override
+    public ModelAndView handleRequest(HttpServletRequest req,
+                                      HttpServletResponse resp) {
+        String userId = req.getParameter("userId");
+        Order order = orderService.createOrder(userId);
+        return new ModelAndView("orderResult", "order", order);
+    }
+}
+```
+
+```xml
+<!-- applicationContext.xml -->
+<bean id="orderController" class="com.example.OrderController">
+    <property name="orderService" ref="orderService"/>
+</bean>
+
+<bean id="orderService" class="com.example.OrderServiceImpl">
+    <property name="orderRepository" ref="orderRepository"/>
+</bean>
+
+<bean id="orderRepository" class="com.example.JdbcOrderRepository">
+    <property name="dataSource" ref="dataSource"/>
+</bean>
+```
+
+### Spring 2.5 — 어노테이션 기반 전환
+
+```java
+// 인터페이스 강제 없음, 훨씬 간결
+@Controller
+public class OrderController {
+
+    @Autowired
+    private OrderService orderService;
+
+    @RequestMapping(value = "/order", method = RequestMethod.POST)
+    public String placeOrder(@RequestParam String userId, Model model) {
+        Order order = orderService.createOrder(userId);
+        model.addAttribute("order", order);
+        return "orderResult"; // ViewResolver가 /WEB-INF/views/orderResult.jsp 찾음
+    }
+}
+```
+
+역할이 명확히 분리됐다: Controller는 요청만, Service는 로직만, Repository는 데이터만.
+
+---
+
+## 4단계: Spring 3.x~4.x — 현대 구조 완성 (2009~2016)
+
+### Java Config — XML 탈출
+
+```java
+// XML 설정을 Java 코드로 대체
+@Configuration
+@ComponentScan("com.example")
+@EnableTransactionManagement
+public class AppConfig {
+
+    @Bean
+    public DataSource dataSource() {
+        HikariDataSource ds = new HikariDataSource();
+        ds.setJdbcUrl("jdbc:mysql://localhost/shop");
+        ds.setUsername("root");
+        return ds;
+    }
+
+    @Bean
+    public JdbcTemplate jdbcTemplate(DataSource ds) {
+        return new JdbcTemplate(ds);
+    }
+}
+```
+
+### REST API 중심 전환
+
+```java
+// Spring 3.0+ — @ResponseBody로 JSON 직접 반환
+@RestController // @Controller + @ResponseBody
+@RequestMapping("/api/orders")
+public class OrderApi {
+
+    @PostMapping
+    public ResponseEntity<OrderDto> createOrder(@RequestBody OrderRequest req) {
+        Order order = orderService.createOrder(req);
+        return ResponseEntity.created(URI.create("/api/orders/" + order.getId()))
+                             .body(OrderDto.from(order));
+    }
+
+    @GetMapping("/{id}")
+    public OrderDto getOrder(@PathVariable Long id) {
+        return OrderDto.from(orderService.findById(id));
+    }
+}
+```
+
+뷰(JSP)가 없어지고 JSON을 직접 반환한다. 프론트엔드와 백엔드가 분리된다.
+
+### 이 시점의 여전한 문제
+
+설정 파일이 줄었지만 여전히 많다. 새 프로젝트를 시작하려면:
+
+- `web.xml` — DispatcherServlet 등록
+- `Spring MVC 설정` — ViewResolver, MessageConverter 등
+- `DataSource 설정` — 커넥션 풀
+- `Transaction 설정` — @EnableTransactionManagement
+- `Security 설정` — 별도 XML
+- Maven/Gradle 의존성 버전 조합 — 직접 검증
+
+기능 개발 전에 환경 구성에만 수 시간이 걸렸다.
+
+---
+
+## 5단계: Spring Boot — 설정보다 코드 (2014~)
+
+### 핵심: "Convention over Configuration"
+
+Spring Boot는 새로운 기술이 아니다. **Spring Framework를 "쓸 수 있는 상태"로 미리 구성해둔 것**이다.
+
+```java
+// 이게 전부다 — main 메서드 하나로 웹 서버가 뜬다
+@SpringBootApplication
+public class ShopApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(ShopApplication.class, args);
+    }
+}
+```
+
+```yaml
+# application.yml — 나머지는 자동 설정
+spring:
+  datasource:
+    url: jdbc:mysql://localhost/shop
+    username: root
+    password: secret
+```
+
+```xml
+<!-- pom.xml — 버전 조합 걱정 없이 starter 하나 -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-jpa</artifactId>
+</dependency>
+```
+
+### Auto-configuration 동작 원리
+
+```
+@SpringBootApplication
+  └── @EnableAutoConfiguration
+        └── spring.factories / AutoConfiguration.imports
+              ├── DataSourceAutoConfiguration
+              │     → DataSource 빈 자동 생성 (application.yml 기반)
+              ├── JpaAutoConfiguration
+              │     → EntityManagerFactory, JpaTransactionManager 자동 생성
+              ├── DispatcherServletAutoConfiguration
+              │     → DispatcherServlet 자동 등록
+              └── (필요한 것만 조건부 활성화 — @ConditionalOnClass, @ConditionalOnMissingBean)
+```
+
+`@ConditionalOnMissingBean` 덕분에 개발자가 직접 빈을 정의하면 자동 설정이 비켜간다. 자동 설정을 사용하면서 필요한 부분만 오버라이드하는 방식이다.
+
+### 현재 Spring Boot 아키텍처
+
+```
+[SpringApplication.run()]
+  │
+  ├── Embedded Tomcat / Jetty / Netty 시작
+  │
+  ├── ApplicationContext 구성
+  │     ├── @Component 스캔 → 빈 등록
+  │     └── Auto-configuration → 나머지 빈 자동 구성
+  │
+  └── HTTP 요청 처리 흐름:
+        Request
+          │
+          ▼
+        [DispatcherServlet]
+          ├── Filter Chain (Security, CORS, Logging)
+          ├── HandlerMapping → @Controller 찾기
+          ├── HandlerAdapter → 메서드 실행
+          │     ├── ArgumentResolver (@RequestBody, @PathVariable 등 바인딩)
+          │     └── @Transactional AOP 프록시 경유
+          └── MessageConverter → 응답 직렬화 (Jackson)
+```
+
+---
+
+## 현재 구조가 왜 등장했는가
+
+각 기술이 해결한 문제를 한 줄로 정리하면:
+
+| 기술 | 해결한 핵심 문제 |
+|------|----------------|
+| Servlet/JSP | CGI 대비 Java 코드 재사용, 멀티스레드 처리 |
+| Spring IoC/DI | 강한 결합 제거, 교체 가능한 구현체 |
+| Spring AOP | 트랜잭션/보안 로직을 비즈니스에서 분리 |
+| Spring MVC | 단일 진입점, 역할 분리 (Controller/Service/Repository) |
+| Spring 3.x+ | XML 탈출, REST API, Java Config |
+| Spring Boot | 설정 자동화, 내장 서버, 빠른 시작 |
+
+---
+
+## 레거시 코드를 이해해야 하는 이유
+
+실무에서 마주치는 상황:
+
+**`web.xml`이 있는 프로젝트**
+- Spring Boot 이전 프로젝트. DispatcherServlet이 XML로 등록되어 있다.
+- Filter, Listener 등록도 XML에 있다. 설정을 찾으려면 XML을 봐야 한다.
+
+**`applicationContext.xml`이 있는 프로젝트**
+- 빈 정의가 Java Config가 아닌 XML에 있다.
+- `@Autowired`가 동작하지 않는 것처럼 보이면 XML에서 별도로 DI 설정이 되어 있는 경우다.
+
+**`implements Controller` 또는 `extends HttpServlet`**
+- 어노테이션이 아닌 인터페이스 기반 MVC. 메서드 시그니처가 다르다.
+
+**트랜잭션이 동작하지 않는 것처럼 보이는 경우**
+- `@Transactional`이 있어도 같은 클래스 내에서 self-invocation하면 AOP 프록시를 경유하지 않는다.
+- 이것은 Spring의 AOP 프록시 구조를 알아야 이해할 수 있는 문제다.
+
+Spring Boot가 모든 것을 자동으로 처리해주지만, 내부에서는 여전히 DispatcherServlet이 동작하고, AOP 프록시가 트랜잭션을 관리하고, IoC 컨테이너가 빈을 연결하고 있다. Boot는 그 위에 편의 레이어를 얹은 것이다.
+
+레거시 코드를 유지보수하거나, 자동 설정이 왜 동작하지 않는지 디버깅하거나, 복잡한 트랜잭션 문제를 추적할 때 — 결국 아래 계층의 동작 방식을 알아야 한다.
+""";
 
     private static final String SPRING_GUIDE_CONTENT = """
 # Spring Framework 버전 선택 가이드
