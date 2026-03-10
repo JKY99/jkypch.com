@@ -340,6 +340,27 @@ export default function SpringBootSelector() {
   /* ── 현재 선택된 Boot 버전 객체 ── */
   const currentVersion = SPRING_BOOT_VERSIONS.find(v => v.version === selectedVersion)!
 
+  /**
+   * ── 버전별 선택 가능 여부 ──
+   * 이미 선택된 의존성이 있으면, 해당 의존성을 모두 지원하는 버전만 선택 가능.
+   * 선택된 의존성이 없으면 모든 버전 선택 가능.
+   */
+  const disabledVersions = useMemo(() => {
+    if (selectedDeps.size === 0) return new Set<string>()
+    const disabled = new Set<string>()
+    for (const v of SPRING_BOOT_VERSIONS) {
+      /* 선택된 의존성 중 하나라도 이 버전과 비호환이면 해당 버전은 선택 불가 */
+      for (const depId of selectedDeps) {
+        const dep = DEPENDENCIES.find(d => d.id === depId)
+        if (dep && !isCompatible(dep, v.version)) {
+          disabled.add(v.version)
+          break
+        }
+      }
+    }
+    return disabled
+  }, [selectedDeps])
+
   /* ── 필터링된 의존성 목록 (카테고리 + 검색어 + 호환성) ── */
   const filteredDeps = useMemo(() => {
     return DEPENDENCIES.filter(dep => {
@@ -375,14 +396,6 @@ export default function SpringBootSelector() {
     [selectedDeps, buildTool]
   )
 
-  /* ── 선택된 의존성 중 현재 버전과 비호환인 것 ── */
-  const incompatibleDeps = useMemo(() => {
-    return [...selectedDeps].filter(id => {
-      const dep = DEPENDENCIES.find(d => d.id === id)
-      return dep && !isCompatible(dep, selectedVersion)
-    })
-  }, [selectedDeps, selectedVersion])
-
   return (
     <div className={styles.selector}>
       {/* ━━━ 헤더 ━━━ */}
@@ -397,11 +410,14 @@ export default function SpringBootSelector() {
       <div className={styles.versionSection}>
         <h3 className={styles.subTitle}>Spring Boot Version</h3>
         <div className={styles.versionGrid}>
-          {SPRING_BOOT_VERSIONS.map(v => (
+          {SPRING_BOOT_VERSIONS.map(v => {
+            const versionDisabled = disabledVersions.has(v.version)
+            return (
             <button
               key={v.version}
-              className={`${styles.versionCard} ${selectedVersion === v.version ? styles.versionActive : ''} ${v.status === 'eol' ? styles.versionEol : ''}`}
-              onClick={() => setSelectedVersion(v.version)}
+              className={`${styles.versionCard} ${selectedVersion === v.version ? styles.versionActive : ''} ${v.status === 'eol' ? styles.versionEol : ''} ${versionDisabled ? styles.versionDisabled : ''}`}
+              onClick={() => !versionDisabled && setSelectedVersion(v.version)}
+              disabled={versionDisabled}
             >
               <div className={styles.versionTop}>
                 <span className={styles.versionNumber}>{v.version}</span>
@@ -412,7 +428,8 @@ export default function SpringBootSelector() {
                 Spring {v.springVersion} · JDK {v.jdkMin}+
               </div>
             </button>
-          ))}
+            )
+          })}
         </div>
       </div>
 
@@ -497,6 +514,7 @@ export default function SpringBootSelector() {
                   type="checkbox"
                   checked={checked}
                   onChange={() => toggleDep(dep.id)}
+                  disabled={!compatible}
                   className={styles.depCheckbox}
                 />
                 <div className={styles.depInfo}>
@@ -541,23 +559,14 @@ export default function SpringBootSelector() {
             </div>
           </div>
 
-          {/* 비호환 경고 */}
-          {incompatibleDeps.length > 0 && (
-            <div className={styles.warning}>
-              Boot {selectedVersion}과 호환되지 않는 의존성: {' '}
-              {incompatibleDeps.map(id => DEPENDENCIES.find(d => d.id === id)?.name).join(', ')}
-            </div>
-          )}
-
           {/* 선택된 의존성 태그 */}
           <div className={styles.selectedTags}>
             {[...selectedDeps].map(id => {
               const dep = DEPENDENCIES.find(d => d.id === id)
-              const compat = dep ? isCompatible(dep, selectedVersion) : true
               return (
                 <span
                   key={id}
-                  className={`${styles.selectedTag} ${!compat ? styles.selectedTagWarn : ''}`}
+                  className={styles.selectedTag}
                   onClick={() => toggleDep(id)}
                 >
                   {dep?.name ?? id} ×

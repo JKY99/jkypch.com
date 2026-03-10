@@ -75,6 +75,14 @@
   opacity: 0.6;
 }
 
+/* 선택된 의존성과 비호환되어 선택 불가능한 버전 */
+.versionDisabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+  border-color: var(--border);
+}
+
 .versionTop {
   display: flex;
   align-items: center;
