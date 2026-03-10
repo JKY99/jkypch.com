@@ -28,73 +28,212 @@ import styles from './SpringBootSelector.module.css'
  * Spring Framework 버전 목록 (1차 선택 기준)
  *
  * - version: 표시 버전 (major.minor 단위)
+ * - released: 최초 GA 출시일 (YYYY-MM)
  * - jdkMin / jdkRecommended: JDK 요구사항
  * - jakartaEE: 대응하는 Jakarta/Java EE 버전
- * - ossEnd / commercialEnd: 지원 종료일
+ * - ossEnd / commercialEnd: 지원 종료일 ('-'면 해당 없음)
  * - status: 'current' | 'lts' | 'maintenance' | 'eol'
+ * - bootVersion: 대응하는 Spring Boot 버전 (없으면 '-')
  * - notes: UI에 표시할 특이사항
  */
 interface FrameworkVersion {
   version: string
+  released: string
   jdkMin: number
   jdkRecommended: number
   jakartaEE: string
   ossEnd: string
   commercialEnd: string
   status: 'current' | 'lts' | 'maintenance' | 'eol'
+  bootVersion: string
   notes?: string
 }
 
 const FRAMEWORK_VERSIONS: FrameworkVersion[] = [
+  /* ── 7.x 세대: Jakarta EE 11 ── */
   {
     version: '7.0',
+    released: '2025-11',
     jdkMin: 17,
     jdkRecommended: 21,
     jakartaEE: 'Jakarta EE 11',
-    ossEnd: '2026-12-31',
-    commercialEnd: '2027-12-31',
+    ossEnd: '2027-06',
+    commercialEnd: '2028-06',
     status: 'current',
-    notes: 'Jakarta EE 11, AOT 강화, Jackson 3 지원',
+    bootVersion: 'Boot 4.0',
+    notes: 'Jakarta EE 11, AOT 강화, Jackson 3, Hibernate 7',
   },
+  /* ── 6.x 세대: Jakarta EE 9-10 (javax → jakarta) ── */
   {
     version: '6.2',
+    released: '2024-11',
     jdkMin: 17,
     jdkRecommended: 21,
     jakartaEE: 'Jakarta EE 10',
-    ossEnd: '2026-06-30',
-    commercialEnd: '2032-06-30',
+    ossEnd: '2026-06',
+    commercialEnd: '2032-06',
     status: 'lts',
+    bootVersion: 'Boot 3.4~3.5',
     notes: 'Boot 3.5 LTS 기반 — 2032년까지 상용 지원',
   },
   {
     version: '6.1',
+    released: '2023-11',
     jdkMin: 17,
     jdkRecommended: 21,
     jakartaEE: 'Jakarta EE 10',
-    ossEnd: '2025-06-30',
-    commercialEnd: '2026-06-30',
+    ossEnd: '2025-06',
+    commercialEnd: '2026-06',
     status: 'eol',
-    notes: 'OSS 지원 종료',
+    bootVersion: 'Boot 3.2~3.3',
+    notes: 'RestClient 도입, Virtual Thread 지원',
   },
   {
     version: '6.0',
+    released: '2022-11',
     jdkMin: 17,
     jdkRecommended: 17,
     jakartaEE: 'Jakarta EE 9+',
-    ossEnd: '2024-06-30',
-    commercialEnd: '2025-12-31',
+    ossEnd: '2024-06',
+    commercialEnd: '2025-08',
     status: 'eol',
-    notes: 'javax → jakarta 전환 첫 버전',
+    bootVersion: 'Boot 3.0~3.1',
+    notes: 'javax → jakarta 전환, GraalVM 네이티브 지원',
   },
+  /* ── 5.x 세대: Java EE 7-8 (javax) ── */
   {
     version: '5.3',
+    released: '2020-10',
     jdkMin: 8,
     jdkRecommended: 17,
-    jakartaEE: 'Java EE 8 (javax)',
-    ossEnd: '2024-12-31',
-    commercialEnd: '2029-06-30',
+    jakartaEE: 'Java EE 7-8',
+    ossEnd: '2024-08',
+    commercialEnd: '2029-06',
     status: 'eol',
-    notes: 'Java 8 호환 마지막 — javax 네임스페이스',
+    bootVersion: 'Boot 2.5~2.7',
+    notes: 'javax 마지막 세대 — LTS (상용 2029년)',
+  },
+  {
+    version: '5.2',
+    released: '2019-09',
+    jdkMin: 8,
+    jdkRecommended: 11,
+    jakartaEE: 'Java EE 7-8',
+    ossEnd: '2021-12',
+    commercialEnd: '2023-12',
+    status: 'eol',
+    bootVersion: 'Boot 2.2~2.4',
+    notes: 'Kotlin Coroutine, RSocket 지원',
+  },
+  {
+    version: '5.1',
+    released: '2018-09',
+    jdkMin: 8,
+    jdkRecommended: 11,
+    jakartaEE: 'Java EE 7-8',
+    ossEnd: '2020-12',
+    commercialEnd: '2022-12',
+    status: 'eol',
+    bootVersion: 'Boot 2.1',
+    notes: 'Functional bean 등록, Log4j2 확장',
+  },
+  {
+    version: '5.0',
+    released: '2017-09',
+    jdkMin: 8,
+    jdkRecommended: 8,
+    jakartaEE: 'Java EE 7-8',
+    ossEnd: '2020-12',
+    commercialEnd: '-',
+    status: 'eol',
+    bootVersion: 'Boot 2.0',
+    notes: 'WebFlux(Reactive) 도입, Kotlin 공식 지원, JDK 9+',
+  },
+  /* ── 4.x 세대: Java EE 6-7 ── */
+  {
+    version: '4.3',
+    released: '2016-06',
+    jdkMin: 6,
+    jdkRecommended: 8,
+    jakartaEE: 'Java EE 6-7',
+    ossEnd: '2020-12',
+    commercialEnd: '-',
+    status: 'eol',
+    bootVersion: 'Boot 1.5',
+    notes: 'Composed annotations, 4.x 마지막',
+  },
+  {
+    version: '4.2',
+    released: '2015-07',
+    jdkMin: 6,
+    jdkRecommended: 8,
+    jakartaEE: 'Java EE 6-7',
+    ossEnd: '2019-12',
+    commercialEnd: '-',
+    status: 'eol',
+    bootVersion: 'Boot 1.3~1.4',
+    notes: 'CORS 지원, HTTP Streaming, Hibernate 5',
+  },
+  {
+    version: '4.1',
+    released: '2014-09',
+    jdkMin: 6,
+    jdkRecommended: 8,
+    jakartaEE: 'Java EE 6-7',
+    ossEnd: '2018-12',
+    commercialEnd: '-',
+    status: 'eol',
+    bootVersion: 'Boot 1.2',
+    notes: 'JMS 개선, 정적 리소스 핸들링',
+  },
+  {
+    version: '4.0',
+    released: '2013-12',
+    jdkMin: 6,
+    jdkRecommended: 7,
+    jakartaEE: 'Java EE 6-7',
+    ossEnd: '2017-12',
+    commercialEnd: '-',
+    status: 'eol',
+    bootVersion: 'Boot 1.0~1.1',
+    notes: 'Java 8 지원, WebSocket, Generics DI',
+  },
+  /* ── 3.x 세대: Java EE 5-6 ── */
+  {
+    version: '3.2',
+    released: '2012-12',
+    jdkMin: 5,
+    jdkRecommended: 6,
+    jakartaEE: 'Java EE 5-6',
+    ossEnd: '2016-12',
+    commercialEnd: '-',
+    status: 'eol',
+    bootVersion: '-',
+    notes: 'Async MVC, Java Config 개선',
+  },
+  {
+    version: '3.1',
+    released: '2011-12',
+    jdkMin: 5,
+    jdkRecommended: 6,
+    jakartaEE: 'Java EE 5-6',
+    ossEnd: '2016-12',
+    commercialEnd: '-',
+    status: 'eol',
+    bootVersion: '-',
+    notes: 'Cache 추상화, @Profile, Servlet 3.0',
+  },
+  {
+    version: '3.0',
+    released: '2009-12',
+    jdkMin: 5,
+    jdkRecommended: 6,
+    jakartaEE: 'Java EE 5',
+    ossEnd: '2013-12',
+    commercialEnd: '-',
+    status: 'eol',
+    bootVersion: '-',
+    notes: '@Configuration, SpEL, REST 지원 도입',
   },
 ]
 
@@ -130,33 +269,42 @@ const DEPENDENCIES: Dependency[] = [
   { id: 'boot-3.5', name: 'Spring Boot 3.5 (LTS)', description: '2032년까지 상용 지원 — 가장 안정적', group: 'boot', compatVersions: ['6.2'], gav: 'org.springframework.boot:spring-boot-starter:3.5.11' },
   { id: 'boot-3.4', name: 'Spring Boot 3.4', description: 'OSS 지원 종료됨', group: 'boot', compatVersions: ['6.2'], gav: 'org.springframework.boot:spring-boot-starter:3.4.x' },
   { id: 'boot-3.3', name: 'Spring Boot 3.3', description: 'OSS 지원 종료', group: 'boot', compatVersions: ['6.1'], gav: 'org.springframework.boot:spring-boot-starter:3.3.x' },
+  { id: 'boot-3.0', name: 'Spring Boot 3.0~3.2', description: 'Jakarta EE 9+ 전환 초기 (EOL)', group: 'boot', compatVersions: ['6.0'], gav: 'org.springframework.boot:spring-boot-starter:3.0.x' },
   { id: 'boot-2.7', name: 'Spring Boot 2.7 (LTS)', description: 'Java 8 호환, 상용 2029년까지', group: 'boot', compatVersions: ['5.3'], gav: 'org.springframework.boot:spring-boot-starter:2.7.x' },
+  { id: 'boot-2.4', name: 'Spring Boot 2.2~2.4', description: 'Framework 5.2 기반 (EOL)', group: 'boot', compatVersions: ['5.2'], gav: 'org.springframework.boot:spring-boot-starter:2.4.x' },
+  { id: 'boot-2.1', name: 'Spring Boot 2.1', description: 'Framework 5.1 기반 (EOL)', group: 'boot', compatVersions: ['5.1'], gav: 'org.springframework.boot:spring-boot-starter:2.1.x' },
+  { id: 'boot-2.0', name: 'Spring Boot 2.0', description: 'WebFlux 도입 세대 (EOL)', group: 'boot', compatVersions: ['5.0'], gav: 'org.springframework.boot:spring-boot-starter:2.0.x' },
+  { id: 'boot-1.5', name: 'Spring Boot 1.5', description: '4.3 기반, Boot 1.x 마지막 (EOL)', group: 'boot', compatVersions: ['4.3'], gav: 'org.springframework.boot:spring-boot-starter:1.5.x' },
+  { id: 'boot-1.3', name: 'Spring Boot 1.3~1.4', description: 'Framework 4.2 기반 (EOL)', group: 'boot', compatVersions: ['4.2'], gav: 'org.springframework.boot:spring-boot-starter:1.4.x' },
+  { id: 'boot-1.2', name: 'Spring Boot 1.2', description: 'Framework 4.1 기반 (EOL)', group: 'boot', compatVersions: ['4.1'], gav: 'org.springframework.boot:spring-boot-starter:1.2.x' },
+  { id: 'boot-1.0', name: 'Spring Boot 1.0~1.1', description: 'Boot 최초 릴리즈 (EOL)', group: 'boot', compatVersions: ['4.0'], gav: 'org.springframework.boot:spring-boot-starter:1.1.x' },
 
   /* ================================================================
    *  ── 웹 서버 (Servlet 컨테이너 / Reactive 런타임) ──
    *  Boot 사용 시 기본 내장되지만, 순수 Spring에서는 직접 선택
    * ================================================================ */
-  { id: 'tomcat', name: 'Apache Tomcat', description: 'Servlet 컨테이너 (Boot 기본)', group: 'server', compatVersions: 'all', versionNote: 'Framework 7.0→Tomcat 11, 6.x→Tomcat 10.1, 5.3→Tomcat 9', gav: 'org.apache.tomcat.embed:tomcat-embed-core' },
-  { id: 'jetty', name: 'Eclipse Jetty', description: '경량 Servlet 컨테이너', group: 'server', compatVersions: 'all', versionNote: 'Framework 7.0→Jetty 12, 6.x→Jetty 12/11, 5.3→Jetty 9/10', gav: 'org.eclipse.jetty:jetty-server' },
-  { id: 'undertow', name: 'JBoss Undertow', description: 'Red Hat 경량 웹 서버', group: 'server', compatVersions: 'all', gav: 'io.undertow:undertow-core' },
-  { id: 'netty', name: 'Netty', description: 'Reactive/비동기 서버 (WebFlux 기본)', group: 'server', compatVersions: 'all', versionNote: 'Framework 7.0→Netty 4.2, 6.x→Netty 4.1', gav: 'io.netty:netty-all' },
+  { id: 'tomcat', name: 'Apache Tomcat', description: 'Servlet 컨테이너 (Boot 기본)', group: 'server', compatVersions: 'all', versionNote: '7.0→Tomcat 11, 6.x→10.1, 5.x→9, 4.x→8/7, 3.x→6/7', gav: 'org.apache.tomcat.embed:tomcat-embed-core' },
+  { id: 'jetty', name: 'Eclipse Jetty', description: '경량 Servlet 컨테이너', group: 'server', compatVersions: 'all', versionNote: '7.0→Jetty 12, 6.x→12/11, 5.x→9/10, 4.x→8/9', gav: 'org.eclipse.jetty:jetty-server' },
+  { id: 'undertow', name: 'JBoss Undertow', description: 'Red Hat 경량 웹 서버', group: 'server', compatVersions: ['7.0', '6.2', '6.1', '6.0', '5.3', '5.2', '5.1', '5.0', '4.3', '4.2'], gav: 'io.undertow:undertow-core' },
+  { id: 'netty', name: 'Netty', description: 'Reactive/비동기 서버 (WebFlux 기본)', group: 'server', compatVersions: ['7.0', '6.2', '6.1', '6.0', '5.3', '5.2', '5.1', '5.0'], versionNote: '7.0→Netty 4.2, 6.x/5.x→Netty 4.1', gav: 'io.netty:netty-all' },
 
   /* ================================================================
    *  ── Spring 핵심 모듈 ──
    * ================================================================ */
   { id: 'spring-webmvc', name: 'Spring Web MVC', description: 'Servlet 기반 동기 웹 프레임워크', group: 'web', compatVersions: 'all', gav: 'org.springframework:spring-webmvc' },
-  { id: 'spring-webflux', name: 'Spring WebFlux', description: 'Reactive 비동기 웹 프레임워크', group: 'web', compatVersions: 'all', gav: 'org.springframework:spring-webflux' },
+  { id: 'spring-webflux', name: 'Spring WebFlux', description: 'Reactive 비동기 웹 프레임워크 (5.0에서 도입)', group: 'web', compatVersions: ['7.0', '6.2', '6.1', '6.0', '5.3', '5.2', '5.1', '5.0'], gav: 'org.springframework:spring-webflux' },
   { id: 'spring-graphql', name: 'Spring for GraphQL', description: 'GraphQL API 서버', group: 'web', compatVersions: ['7.0', '6.2', '6.1'], gav: 'org.springframework.graphql:spring-graphql' },
-  { id: 'spring-websocket', name: 'Spring WebSocket', description: 'WebSocket 양방향 통신', group: 'web', compatVersions: 'all', gav: 'org.springframework:spring-websocket' },
-  { id: 'spring-hateoas', name: 'Spring HATEOAS', description: 'Hypermedia REST 서비스', group: 'web', compatVersions: 'all', gav: 'org.springframework.hateoas:spring-hateoas' },
-  { id: 'springdoc-openapi', name: 'SpringDoc OpenAPI', description: 'Swagger UI & API 문서 자동 생성', group: 'web', compatVersions: ['7.0', '6.2', '6.1'], gav: 'org.springdoc:springdoc-openapi-starter-webmvc-ui' },
+  { id: 'spring-websocket', name: 'Spring WebSocket', description: 'WebSocket 양방향 통신 (4.0에서 도입)', group: 'web', compatVersions: ['7.0', '6.2', '6.1', '6.0', '5.3', '5.2', '5.1', '5.0', '4.3', '4.2', '4.1', '4.0'], gav: 'org.springframework:spring-websocket' },
+  { id: 'spring-hateoas', name: 'Spring HATEOAS', description: 'Hypermedia REST 서비스', group: 'web', compatVersions: ['7.0', '6.2', '6.1', '6.0', '5.3', '5.2', '5.1', '5.0', '4.3', '4.2', '4.1', '4.0', '3.2'], gav: 'org.springframework.hateoas:spring-hateoas' },
+  { id: 'springdoc-openapi', name: 'SpringDoc OpenAPI', description: 'Swagger UI & API 문서 자동 생성', group: 'web', compatVersions: ['7.0', '6.2', '6.1', '6.0'], versionNote: '6.x→springdoc v2 (jakarta), 5.x→springdoc v1 (javax)', gav: 'org.springdoc:springdoc-openapi-starter-webmvc-ui' },
+  { id: 'springfox', name: 'SpringFox Swagger', description: 'Swagger 2 문서 (레거시)', group: 'web', compatVersions: ['5.3', '5.2', '5.1', '5.0', '4.3', '4.2'], versionNote: '5.3 이하 전용, 6.0+는 SpringDoc 사용', gav: 'io.springfox:springfox-boot-starter' },
 
   /* ================================================================
    *  ── Security ──
    * ================================================================ */
-  { id: 'spring-security', name: 'Spring Security', description: '인증/인가 프레임워크', group: 'security', compatVersions: 'all', versionNote: 'Framework 7.0→Security 7, 6.x→Security 6, 5.3→Security 5', gav: 'org.springframework.security:spring-security-web' },
-  { id: 'oauth2-client', name: 'OAuth2 Client', description: 'OAuth2 / OpenID Connect 클라이언트', group: 'security', compatVersions: 'all', gav: 'org.springframework.security:spring-security-oauth2-client' },
-  { id: 'oauth2-resource-server', name: 'OAuth2 Resource Server', description: 'JWT/Opaque 토큰 기반 리소스 서버', group: 'security', compatVersions: 'all', gav: 'org.springframework.security:spring-security-oauth2-resource-server' },
+  { id: 'spring-security', name: 'Spring Security', description: '인증/인가 프레임워크', group: 'security', compatVersions: 'all', versionNote: '7.0→Security 7, 6.x→Security 6, 5.x→Security 5, 4.x→Security 4, 3.x→Security 3', gav: 'org.springframework.security:spring-security-web' },
+  { id: 'oauth2-client', name: 'OAuth2 Client', description: 'OAuth2 / OpenID Connect 클라이언트', group: 'security', compatVersions: ['7.0', '6.2', '6.1', '6.0', '5.3', '5.2', '5.1', '5.0'], gav: 'org.springframework.security:spring-security-oauth2-client' },
+  { id: 'oauth2-resource-server', name: 'OAuth2 Resource Server', description: 'JWT/Opaque 토큰 기반 리소스 서버', group: 'security', compatVersions: ['7.0', '6.2', '6.1', '6.0', '5.3', '5.2', '5.1', '5.0'], gav: 'org.springframework.security:spring-security-oauth2-resource-server' },
   { id: 'oauth2-auth-server', name: 'OAuth2 Authorization Server', description: 'OAuth2 인가 서버', group: 'security', compatVersions: ['7.0', '6.2', '6.1', '6.0'], gav: 'org.springframework.security:spring-security-oauth2-authorization-server' },
 
   /* ================================================================
@@ -165,7 +313,7 @@ const DEPENDENCIES: Dependency[] = [
   { id: 'spring-data-jpa', name: 'Spring Data JPA', description: 'JPA Repository 추상화', group: 'data', compatVersions: 'all', gav: 'org.springframework.data:spring-data-jpa' },
   { id: 'hibernate', name: 'Hibernate ORM', description: 'JPA 구현체', group: 'data', compatVersions: 'all', versionNote: 'Framework 7.0→Hibernate 7.2, 6.x→Hibernate 6.x, 5.3→Hibernate 5.6', gav: 'org.hibernate.orm:hibernate-core' },
   { id: 'spring-data-jdbc', name: 'Spring Data JDBC', description: '경량 JDBC 데이터 접근', group: 'data', compatVersions: 'all', gav: 'org.springframework.data:spring-data-jdbc' },
-  { id: 'mybatis', name: 'MyBatis', description: 'SQL 매퍼 프레임워크', group: 'data', compatVersions: ['7.0', '6.2', '6.1'], versionNote: 'mybatis-spring-boot-starter 3.x (Boot 3+)', gav: 'org.mybatis.spring.boot:mybatis-spring-boot-starter' },
+  { id: 'mybatis', name: 'MyBatis', description: 'SQL 매퍼 프레임워크', group: 'data', compatVersions: ['7.0', '6.2', '6.1', '6.0', '5.3', '5.2', '5.1', '5.0', '4.3', '4.2', '4.1', '4.0', '3.2', '3.1', '3.0'], versionNote: '6.x→mybatis-spring 3.x, 5.x/4.x→mybatis-spring 2.x', gav: 'org.mybatis:mybatis-spring' },
   { id: 'jooq', name: 'jOOQ', description: '타입 안전 SQL 빌더', group: 'data', compatVersions: 'all', gav: 'org.jooq:jooq' },
   { id: 'flyway', name: 'Flyway', description: 'SQL 마이그레이션 관리', group: 'data', compatVersions: 'all', gav: 'org.flywaydb:flyway-core' },
   { id: 'liquibase', name: 'Liquibase', description: 'DB 변경 관리 & 마이그레이션', group: 'data', compatVersions: 'all', gav: 'org.liquibase:liquibase-core' },
@@ -186,7 +334,7 @@ const DEPENDENCIES: Dependency[] = [
   { id: 'spring-data-redis', name: 'Spring Data Redis', description: 'Redis 키-값 저장소', group: 'nosql', compatVersions: 'all', gav: 'org.springframework.data:spring-data-redis' },
   { id: 'spring-data-elasticsearch', name: 'Spring Data Elasticsearch', description: 'Elasticsearch 검색 엔진', group: 'nosql', compatVersions: 'all', gav: 'org.springframework.data:spring-data-elasticsearch' },
   { id: 'spring-data-neo4j', name: 'Spring Data Neo4j', description: 'Neo4j 그래프 DB', group: 'nosql', compatVersions: 'all', gav: 'org.springframework.data:spring-data-neo4j' },
-  { id: 'spring-data-r2dbc', name: 'Spring Data R2DBC', description: 'Reactive 관계형 DB 접근', group: 'nosql', compatVersions: ['7.0', '6.2', '6.1', '6.0'], gav: 'org.springframework.data:spring-data-r2dbc' },
+  { id: 'spring-data-r2dbc', name: 'Spring Data R2DBC', description: 'Reactive 관계형 DB 접근', group: 'nosql', compatVersions: ['7.0', '6.2', '6.1', '6.0', '5.3', '5.2'], versionNote: '5.2에서 최초 도입, 6.x에서 정식 통합', gav: 'org.springframework.data:spring-data-r2dbc' },
 
   /* ================================================================
    *  ── Serialization / JSON ──
@@ -200,34 +348,35 @@ const DEPENDENCIES: Dependency[] = [
    * ================================================================ */
   { id: 'spring-kafka', name: 'Spring for Kafka', description: 'Apache Kafka 메시징', group: 'messaging', compatVersions: 'all', gav: 'org.springframework.kafka:spring-kafka' },
   { id: 'spring-amqp', name: 'Spring for RabbitMQ', description: 'AMQP / RabbitMQ', group: 'messaging', compatVersions: 'all', gav: 'org.springframework.amqp:spring-rabbit' },
-  { id: 'spring-pulsar', name: 'Spring for Pulsar', description: 'Apache Pulsar', group: 'messaging', compatVersions: ['7.0', '6.2', '6.1'], gav: 'org.springframework.pulsar:spring-pulsar' },
+  { id: 'spring-pulsar', name: 'Spring for Pulsar', description: 'Apache Pulsar (Boot 3.2+)', group: 'messaging', compatVersions: ['7.0', '6.2', '6.1'], gav: 'org.springframework.pulsar:spring-pulsar' },
   { id: 'spring-jms', name: 'Spring JMS (ActiveMQ)', description: 'JMS 메시징', group: 'messaging', compatVersions: 'all', gav: 'org.springframework:spring-jms' },
 
   /* ================================================================
    *  ── Observability / 운영 ──
    * ================================================================ */
-  { id: 'micrometer', name: 'Micrometer Core', description: '메트릭 수집 추상화', group: 'ops', compatVersions: 'all', gav: 'io.micrometer:micrometer-core' },
-  { id: 'micrometer-prometheus', name: 'Micrometer Prometheus', description: 'Prometheus 레지스트리', group: 'ops', compatVersions: 'all', gav: 'io.micrometer:micrometer-registry-prometheus' },
-  { id: 'micrometer-tracing', name: 'Micrometer Tracing', description: '분산 추적', group: 'ops', compatVersions: ['7.0', '6.2', '6.1'], gav: 'io.micrometer:micrometer-tracing' },
-  { id: 'opentelemetry', name: 'OpenTelemetry', description: '통합 관측성 (traces, metrics, logs)', group: 'ops', compatVersions: ['7.0'], versionNote: 'Boot 4.0에서 네이티브 통합', gav: 'io.opentelemetry:opentelemetry-api' },
-  { id: 'boot-actuator', name: 'Spring Boot Actuator', description: '운영 엔드포인트 (Boot 필요)', group: 'ops', compatVersions: ['7.0', '6.2', '6.1', '6.0'], gav: 'org.springframework.boot:spring-boot-starter-actuator' },
+  { id: 'micrometer', name: 'Micrometer Core', description: '메트릭 수집 추상화 (2017~)', group: 'ops', compatVersions: ['7.0', '6.2', '6.1', '6.0', '5.3', '5.2', '5.1', '5.0'], gav: 'io.micrometer:micrometer-core' },
+  { id: 'micrometer-prometheus', name: 'Micrometer Prometheus', description: 'Prometheus 레지스트리', group: 'ops', compatVersions: ['7.0', '6.2', '6.1', '6.0', '5.3', '5.2', '5.1', '5.0'], gav: 'io.micrometer:micrometer-registry-prometheus' },
+  { id: 'micrometer-tracing', name: 'Micrometer Tracing', description: '분산 추적 (구 Spring Cloud Sleuth)', group: 'ops', compatVersions: ['7.0', '6.2', '6.1', '6.0'], gav: 'io.micrometer:micrometer-tracing' },
+  { id: 'opentelemetry', name: 'OpenTelemetry', description: '통합 관측성 (traces, metrics, logs)', group: 'ops', compatVersions: ['7.0', '6.2'], versionNote: 'Boot 4.0 네이티브 통합, Boot 3.5도 지원', gav: 'io.opentelemetry:opentelemetry-api' },
+  { id: 'boot-actuator', name: 'Spring Boot Actuator', description: '운영 엔드포인트 (Boot 필요)', group: 'ops', compatVersions: ['7.0', '6.2', '6.1', '6.0', '5.3', '5.2', '5.1', '5.0', '4.3', '4.2', '4.1', '4.0'], gav: 'org.springframework.boot:spring-boot-starter-actuator' },
 
   /* ================================================================
    *  ── Spring Cloud ──
    * ================================================================ */
-  { id: 'cloud-config', name: 'Spring Cloud Config', description: '중앙 설정 서버/클라이언트', group: 'cloud', compatVersions: ['7.0', '6.2', '6.1'], gav: 'org.springframework.cloud:spring-cloud-config-client' },
-  { id: 'cloud-eureka', name: 'Eureka Discovery', description: '서비스 디스커버리', group: 'cloud', compatVersions: ['7.0', '6.2', '6.1'], gav: 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client' },
-  { id: 'cloud-gateway', name: 'Spring Cloud Gateway', description: 'API 게이트웨이 (WebFlux 기반)', group: 'cloud', compatVersions: ['7.0', '6.2', '6.1'], gav: 'org.springframework.cloud:spring-cloud-starter-gateway' },
-  { id: 'cloud-feign', name: 'OpenFeign', description: '선언적 REST 클라이언트', group: 'cloud', compatVersions: ['7.0', '6.2', '6.1'], gav: 'org.springframework.cloud:spring-cloud-starter-openfeign' },
-  { id: 'cloud-resilience4j', name: 'Resilience4J', description: '서킷 브레이커 & 내결함성', group: 'cloud', compatVersions: ['7.0', '6.2', '6.1'], gav: 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j' },
+  { id: 'cloud-config', name: 'Spring Cloud Config', description: '중앙 설정 서버/클라이언트', group: 'cloud', compatVersions: ['7.0', '6.2', '6.1', '6.0', '5.3', '5.2', '5.1', '5.0'], gav: 'org.springframework.cloud:spring-cloud-config-client' },
+  { id: 'cloud-eureka', name: 'Eureka Discovery', description: '서비스 디스커버리', group: 'cloud', compatVersions: ['7.0', '6.2', '6.1', '6.0', '5.3', '5.2', '5.1', '5.0'], gav: 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client' },
+  { id: 'cloud-gateway', name: 'Spring Cloud Gateway', description: 'API 게이트웨이 (WebFlux 기반, 5.0+)', group: 'cloud', compatVersions: ['7.0', '6.2', '6.1', '6.0', '5.3', '5.2', '5.1', '5.0'], gav: 'org.springframework.cloud:spring-cloud-starter-gateway' },
+  { id: 'cloud-feign', name: 'OpenFeign', description: '선언적 REST 클라이언트', group: 'cloud', compatVersions: ['7.0', '6.2', '6.1', '6.0', '5.3', '5.2', '5.1', '5.0'], gav: 'org.springframework.cloud:spring-cloud-starter-openfeign' },
+  { id: 'cloud-resilience4j', name: 'Resilience4J', description: '서킷 브레이커 & 내결함성', group: 'cloud', compatVersions: ['7.0', '6.2', '6.1', '6.0', '5.3', '5.2', '5.1', '5.0'], gav: 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j' },
+  { id: 'cloud-zuul', name: 'Zuul Gateway', description: 'API 게이트웨이 (레거시, Netflix)', group: 'cloud', compatVersions: ['5.3', '5.2', '5.1', '5.0'], versionNote: 'Spring Cloud 2021.x에서 제거, 5.x 전용', gav: 'org.springframework.cloud:spring-cloud-starter-netflix-zuul' },
 
   /* ================================================================
    *  ── 개발 & 테스트 도구 ──
    * ================================================================ */
   { id: 'lombok', name: 'Lombok', description: '보일러플레이트 코드 제거', group: 'devtools', compatVersions: 'all', gav: 'org.projectlombok:lombok' },
-  { id: 'boot-devtools', name: 'Spring Boot DevTools', description: '빠른 재시작 & 라이브 리로드 (Boot 필요)', group: 'devtools', compatVersions: ['7.0', '6.2', '6.1', '6.0'], gav: 'org.springframework.boot:spring-boot-devtools' },
-  { id: 'testcontainers', name: 'Testcontainers', description: '통합 테스트용 Docker 컨테이너', group: 'devtools', compatVersions: 'all', gav: 'org.testcontainers:testcontainers' },
-  { id: 'boot-docker-compose', name: 'Docker Compose Support', description: 'Boot 개발 환경 Docker Compose 통합', group: 'devtools', compatVersions: ['7.0', '6.2', '6.1'], gav: 'org.springframework.boot:spring-boot-docker-compose' },
+  { id: 'boot-devtools', name: 'Spring Boot DevTools', description: '빠른 재시작 & 라이브 리로드 (Boot 필요)', group: 'devtools', compatVersions: ['7.0', '6.2', '6.1', '6.0', '5.3', '5.2', '5.1', '5.0', '4.3', '4.2'], gav: 'org.springframework.boot:spring-boot-devtools' },
+  { id: 'testcontainers', name: 'Testcontainers', description: '통합 테스트용 Docker 컨테이너', group: 'devtools', compatVersions: ['7.0', '6.2', '6.1', '6.0', '5.3', '5.2', '5.1', '5.0'], gav: 'org.testcontainers:testcontainers' },
+  { id: 'boot-docker-compose', name: 'Docker Compose Support', description: 'Boot 개발 환경 Docker Compose 통합 (Boot 3.1+)', group: 'devtools', compatVersions: ['7.0', '6.2', '6.1'], gav: 'org.springframework.boot:spring-boot-docker-compose' },
   { id: 'validation', name: 'Bean Validation', description: 'Hibernate Validator', group: 'devtools', compatVersions: 'all', gav: 'org.hibernate.validator:hibernate-validator' },
   { id: 'spring-batch', name: 'Spring Batch', description: '대용량 배치 처리', group: 'devtools', compatVersions: 'all', gav: 'org.springframework.batch:spring-batch-core' },
   { id: 'quartz', name: 'Quartz Scheduler', description: '스케줄링 프레임워크', group: 'devtools', compatVersions: 'all', gav: 'org.quartz-scheduler:quartz' },
@@ -398,7 +547,7 @@ export default function SpringBootSelector() {
                   {v.status === 'eol' && <span className={styles.eolBadge}>EOL</span>}
                 </div>
                 <div className={styles.versionMeta}>
-                  {v.jakartaEE} · JDK {v.jdkMin}+
+                  {v.released} · JDK {v.jdkMin}+
                 </div>
               </button>
             )
@@ -410,12 +559,20 @@ export default function SpringBootSelector() {
       <div className={styles.versionDetail}>
         <div className={styles.detailGrid}>
           <div className={styles.detailItem}>
+            <span className={styles.detailLabel}>출시일</span>
+            <span className={styles.detailValue}>{currentVersion.released}</span>
+          </div>
+          <div className={styles.detailItem}>
             <span className={styles.detailLabel}>Jakarta / Java EE</span>
             <span className={styles.detailValue}>{currentVersion.jakartaEE}</span>
           </div>
           <div className={styles.detailItem}>
             <span className={styles.detailLabel}>JDK</span>
             <span className={styles.detailValue}>{currentVersion.jdkMin}+ (권장 {currentVersion.jdkRecommended})</span>
+          </div>
+          <div className={styles.detailItem}>
+            <span className={styles.detailLabel}>대응 Boot</span>
+            <span className={styles.detailValue}>{currentVersion.bootVersion}</span>
           </div>
           <div className={styles.detailItem}>
             <span className={styles.detailLabel}>OSS 지원</span>
