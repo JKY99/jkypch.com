@@ -1,0 +1,485 @@
+/* ================================================================
+ *  SpringBootSelector 스타일
+ *  ─ 프로젝트 globals.css의 디자인 토큰을 따릅니다
+ * ================================================================ */
+
+/* ── 전체 컨테이너 ── */
+.selector {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--gap-lg);
+  margin-bottom: var(--gap-2xl);
+}
+
+/* ── 헤더 ── */
+.selectorHeader {
+  margin-bottom: var(--gap-lg);
+}
+
+.selectorTitle {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-1);
+  margin-bottom: var(--gap-xs);
+}
+
+.selectorDesc {
+  font-size: 0.85rem;
+  color: var(--text-3);
+}
+
+/* ── 공통 서브 타이틀 ── */
+.subTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-1);
+  margin-bottom: var(--gap-sm);
+}
+
+/* ── 버전 선택 ── */
+.versionSection {
+  margin-bottom: var(--gap-md);
+}
+
+.versionGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-sm);
+}
+
+.versionCard {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--gap-sm) var(--gap-md);
+  cursor: pointer;
+  transition: all var(--transition);
+  text-align: left;
+  color: var(--text-2);
+  font-family: var(--font-sans);
+  min-width: 130px;
+}
+
+.versionCard:hover {
+  border-color: var(--orange);
+}
+
+.versionActive {
+  border-color: var(--orange);
+  background: var(--orange-dim);
+  color: var(--text-1);
+}
+
+.versionEol {
+  opacity: 0.6;
+}
+
+.versionTop {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.versionNumber {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.ltsBadge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  background: var(--green);
+  color: var(--bg-0);
+  padding: 1px 5px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+
+.eolBadge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  background: var(--red);
+  color: #fff;
+  padding: 1px 5px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+
+.versionMeta {
+  font-size: 0.72rem;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+}
+
+/* ── 버전 상세 정보 ── */
+.versionDetail {
+  background: var(--bg-0);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--gap-md);
+  margin-bottom: var(--gap-lg);
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--gap-sm) var(--gap-lg);
+}
+
+.detailItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.detailLabel {
+  font-size: 0.72rem;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.detailValue {
+  font-size: 0.88rem;
+  color: var(--text-1);
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+.detailNotes {
+  margin-top: var(--gap-sm);
+  padding-top: var(--gap-sm);
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+  color: var(--orange);
+  font-style: italic;
+}
+
+/* ── 의존성 섹션 ── */
+.depsSection {
+  margin-bottom: var(--gap-md);
+}
+
+.depsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-md);
+  margin-bottom: var(--gap-sm);
+  flex-wrap: wrap;
+}
+
+.searchInput {
+  background: var(--bg-0);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-1);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  padding: 6px 12px;
+  width: 220px;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.searchInput:focus {
+  border-color: var(--orange);
+}
+
+.searchInput::placeholder {
+  color: var(--text-3);
+}
+
+/* ── 카테고리 탭 ── */
+.categoryTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: var(--gap-md);
+}
+
+.catTab {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px 12px;
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+  color: var(--text-3);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.catTab:hover {
+  color: var(--text-1);
+  border-color: var(--text-3);
+}
+
+.catTabActive {
+  background: var(--orange-dim);
+  border-color: var(--orange);
+  color: var(--orange);
+}
+
+/* ── 의존성 목록 ── */
+.depsList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 6px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* 스크롤바 스타일 */
+.depsList::-webkit-scrollbar {
+  width: 4px;
+}
+
+.depsList::-webkit-scrollbar-track {
+  background: var(--bg-0);
+}
+
+.depsList::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.depItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--gap-sm);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition);
+  border: 1px solid transparent;
+}
+
+.depItem:hover {
+  background: var(--bg-2);
+}
+
+.depChecked {
+  background: var(--orange-dim);
+  border-color: rgba(242, 98, 7, 0.25);
+}
+
+.depIncompatible {
+  opacity: 0.45;
+}
+
+.depCheckbox {
+  margin-top: 3px;
+  accent-color: var(--orange);
+  flex-shrink: 0;
+}
+
+.depInfo {
+  min-width: 0;
+}
+
+.depNameRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.depName {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-1);
+}
+
+.incompatBadge {
+  font-size: 0.62rem;
+  font-weight: 600;
+  background: var(--red);
+  color: #fff;
+  padding: 1px 4px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+.depDesc {
+  font-size: 0.75rem;
+  color: var(--text-3);
+  display: block;
+  line-height: 1.3;
+}
+
+.emptyDeps {
+  color: var(--text-3);
+  font-size: 0.85rem;
+  padding: var(--gap-md);
+  grid-column: 1 / -1;
+  text-align: center;
+}
+
+/* ── 결과 & 빌드 설정 ── */
+.resultSection {
+  background: var(--bg-0);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--gap-md);
+}
+
+.resultHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--gap-sm);
+  margin-bottom: var(--gap-sm);
+}
+
+.resultActions {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+}
+
+.buildToggle {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.toggleBtn {
+  background: transparent;
+  border: none;
+  padding: 4px 12px;
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+  color: var(--text-3);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.toggleBtn:hover {
+  color: var(--text-1);
+}
+
+.toggleActive {
+  background: var(--orange-dim);
+  color: var(--orange);
+}
+
+.clearBtn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  color: var(--text-3);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  transition: all var(--transition);
+}
+
+.clearBtn:hover {
+  color: var(--red);
+  border-color: var(--red);
+}
+
+/* 비호환 경고 */
+.warning {
+  background: rgba(248, 81, 73, 0.1);
+  border: 1px solid rgba(248, 81, 73, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  color: var(--red);
+  margin-bottom: var(--gap-sm);
+}
+
+/* 선택된 태그 */
+.selectedTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: var(--gap-sm);
+}
+
+.selectedTag {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.selectedTag:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.selectedTagWarn {
+  border-color: rgba(248, 81, 73, 0.4);
+  color: var(--red);
+}
+
+/* 코드 블록 */
+.codeBlock {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--gap-md);
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--text-1);
+  margin: 0;
+}
+
+/* ── 반응형 ── */
+@media (max-width: 600px) {
+  .selector {
+    padding: var(--gap-md);
+  }
+
+  .versionGrid {
+    flex-direction: column;
+  }
+
+  .versionCard {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .detailGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .depsList {
+    grid-template-columns: 1fr;
+    max-height: 300px;
+  }
+
+  .searchInput {
+    width: 100%;
+  }
+
+  .depsHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .resultHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .resultActions {
+    justify-content: space-between;
+  }
+}

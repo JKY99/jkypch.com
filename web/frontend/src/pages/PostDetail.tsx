@@ -3,7 +3,17 @@ import { useParams, Link } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import Tag from '../components/common/Tag'
+import SpringBootSelector from '../components/SpringBootSelector'
 import styles from './PostDetail.module.css'
+
+/**
+ * 인터랙티브 컴포넌트를 포함하는 포스트 ID 매핑
+ * - 해당 ID의 포스트가 렌더링될 때 마크다운 위에 컴포넌트를 삽입
+ * - 새로운 인터랙티브 포스트 추가 시 여기에 등록
+ */
+const POST_COMPONENTS: Record<string, React.FC> = {
+  'spring-boot-version-guide': SpringBootSelector,
+}
 
 interface Post {
   id: string
@@ -49,6 +59,9 @@ export default function PostDetail() {
     </div>
   )
 
+  /* 포스트 ID에 매칭되는 인터랙티브 컴포넌트가 있으면 렌더링 */
+  const InteractiveComponent = post.id ? POST_COMPONENTS[post.id] : undefined
+
   return (
     <div className={styles.page}>
       <div className="container">
@@ -61,6 +74,7 @@ export default function PostDetail() {
           </div>
         </div>
         <article className={styles.body}>
+          {InteractiveComponent && <InteractiveComponent />}
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
             {post.content}
           </ReactMarkdown>
