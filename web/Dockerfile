@@ -20,7 +20,7 @@ COPY --from=frontend-build /app/dist src/main/resources/static/
 RUN mvn package -DskipTests -Dskip.frontend=true -q
 
 # Stage 3: Runtime
-FROM eclipse-temurin:25-jre
+FROM eclipse-temurin:21-jre
 RUN apt-get update -qq && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=backend-build /app/target/*.jar app.jar

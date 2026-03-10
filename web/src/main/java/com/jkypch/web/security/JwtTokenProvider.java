@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -28,11 +31,16 @@ public class JwtTokenProvider {
     @Value("${app.jwt.refresh-token-expiry-days}")
     private long refreshTokenExpiryDays;
 
+    private static final Logger log = LoggerFactory.getLogger(JwtTokenProvider.class);
+
     private SecretKey key;
 
     @PostConstruct
     public void init() {
         byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+        if (keyBytes.length < 32) {
+            log.warn("JWT secret is only {} bytes — recommend at least 32 bytes for HS256", keyBytes.length);
+        }
         // Pad/truncate to 32 bytes for HS256
         byte[] keyPadded = new byte[32];
         System.arraycopy(keyBytes, 0, keyPadded, 0, Math.min(keyBytes.length, 32));

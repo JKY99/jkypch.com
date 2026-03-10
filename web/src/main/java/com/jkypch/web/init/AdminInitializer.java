@@ -3,6 +3,7 @@ package com.jkypch.web.init;
 import com.jkypch.web.domain.AdminUser;
 import com.jkypch.web.domain.Role;
 import com.jkypch.web.repository.jpa.AdminUserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -16,6 +17,9 @@ public class AdminInitializer implements ApplicationRunner {
     private final AdminUserRepository adminUserRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Value("${app.admin.default-password:admin}")
+    private String defaultPassword;
+
     public AdminInitializer(AdminUserRepository adminUserRepository, PasswordEncoder passwordEncoder) {
         this.adminUserRepository = adminUserRepository;
         this.passwordEncoder = passwordEncoder;
@@ -24,7 +28,7 @@ public class AdminInitializer implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         if (!adminUserRepository.existsByUsername("admin")) {
-            AdminUser admin = new AdminUser("admin", passwordEncoder.encode("admin"), Role.ADMIN);
+            AdminUser admin = new AdminUser("admin", passwordEncoder.encode(defaultPassword), Role.ADMIN);
             adminUserRepository.save(admin);
         }
     }

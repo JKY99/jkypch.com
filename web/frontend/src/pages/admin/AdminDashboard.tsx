@@ -32,10 +32,12 @@ export default function AdminDashboard() {
   const [pwMsg, setPwMsg] = useState('')
   const [tab, setTab] = useState<'dashboard' | 'logs'>('dashboard')
 
+  const [error, setError] = useState('')
+
   useEffect(() => {
     authFetch('/api/admin/me').then(r => r.json()).then(d => setUsername(d.username)).catch(() => navigate('/admin/login'))
-    authFetch('/api/admin/visits/stats').then(r => r.json()).then(setStats).catch(() => {})
-    authFetch('/api/admin/visits/logs?limit=100').then(r => r.json()).then(setLogs).catch(() => {})
+    authFetch('/api/admin/visits/stats').then(r => r.json()).then(setStats).catch((e) => { console.error('stats fetch failed:', e); setError('통계를 불러오지 못했습니다.') })
+    authFetch('/api/admin/visits/logs?limit=100').then(r => r.json()).then(setLogs).catch((e) => { console.error('logs fetch failed:', e); setError('로그를 불러오지 못했습니다.') })
   }, [navigate])
 
   async function handleLogout() {
@@ -74,6 +76,8 @@ export default function AdminDashboard() {
         </div>
       </header>
 
+      {error && <div className={styles.pwMsg} style={{ color: '#ff6b6b', padding: '8px 16px' }}>{error}</div>}
+
       <nav className={styles.tabs}>
         <button className={`${styles.tab} ${tab === 'dashboard' ? styles.activeTab : ''}`} onClick={() => setTab('dashboard')}>Dashboard</button>
         <button className={`${styles.tab} ${tab === 'logs' ? styles.activeTab : ''}`} onClick={() => setTab('logs')}>Logs</button>
@@ -96,7 +100,7 @@ export default function AdminDashboard() {
                   <div className={styles.trendBar}>
                     <div
                       className={styles.trendFill}
-                      style={{ width: `${Math.min(100, (d.count / Math.max(...(stats.dailyTrend.map(x => x.count) || [1]))) * 100)}%` }}
+                      style={{ width: `${Math.min(100, (d.count / Math.max(1, ...stats.dailyTrend.map(x => x.count))) * 100)}%` }}
                     />
                   </div>
                   <span className={styles.trendCount}>{d.count}</span>

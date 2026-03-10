@@ -55,7 +55,7 @@ export async function logout() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken }),
-    }).catch(() => {})
+    }).catch((e) => console.error('logout failed:', e))
   }
   clearTokens()
 }

@@ -19,7 +19,7 @@ export default function Home() {
     fetch('/api/posts')
       .then(res => res.json())
       .then((data: PostSummary[]) => setPosts(data.slice(0, 3)))
-      .catch(() => {})
+      .catch((e) => console.error('failed to fetch posts:', e))
   }, [])
 
   return (

@@ -58,6 +58,7 @@ pipeline {
                             -e ORACLE_URL=\${ORACLE_URL:-} \\
                             -e ORACLE_USER=\${ORACLE_USER:-} \\
                             -e ORACLE_PASS=\${ORACLE_PASS:-} \\
+                            -e JWT_SECRET=\${JWT_SECRET:-} \\
                             ${image}
                     """
                 }
