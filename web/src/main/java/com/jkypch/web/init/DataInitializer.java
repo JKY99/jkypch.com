@@ -223,7 +223,7 @@ public class OrderServlet extends HttpServlet {
 
 ---
 
-## 2단계: Spring Framework 등장 (2003~2004)
+## 2단계: Spring Framework 등장 (2003–2004)
 
 당시 Sun Microsystems가 제시한 "정석"은 **EJB(Enterprise JavaBeans)**였다. 트랜잭션 관리, 분산 객체, 보안 등 엔터프라이즈에 필요한 기능을 컨테이너가 제공하되, 그 대가로 복잡한 인터페이스 구현과 XML 배포 서술자를 요구했다. 작은 비즈니스 로직 하나를 위해 Home 인터페이스, Remote 인터페이스, 배포 서술자를 작성해야 하는 구조는 과도한 무게였다.
 
@@ -313,19 +313,19 @@ public void placeOrder(Order order) {
   <line x1="490" y1="160" x2="530" y2="160" stroke="#555" stroke-width="1.5" marker-end="url(#s2-ar)"/>
   <rect x="530" y="138" width="130" height="44" rx="6" fill="#252525" stroke="#3a3a3a" stroke-width="1.5"/>
   <text x="595" y="162" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="12">Database</text>
-  <rect x="330" y="210" width="160" height="70" rx="6" fill="#1a1028" stroke="#5a3a8a" stroke-width="1.5"/>
-  <text x="410" y="232" text-anchor="middle" fill="#a080d0" font-family="monospace" font-size="12">AOP Proxy</text>
-  <text x="410" y="250" text-anchor="middle" fill="#7060a0" font-family="monospace" font-size="10">@Transactional</text>
-  <text x="410" y="268" text-anchor="middle" fill="#504070" font-family="monospace" font-size="10">트랜잭션 시작/커밋/롤백 자동 처리</text>
-  <path d="M 330 245 C 285 245, 285 90, 330 90" fill="none" stroke="#5a3a8a" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#s2-aop)"/>
-  <text x="264" y="175" fill="#5a3a8a" font-family="monospace" font-size="10">wrap</text>
+  <rect x="320" y="210" width="190" height="70" rx="6" fill="#1a1028" stroke="#5a3a8a" stroke-width="1.5"/>
+  <text x="415" y="232" text-anchor="middle" fill="#a080d0" font-family="monospace" font-size="12">AOP Proxy</text>
+  <text x="415" y="250" text-anchor="middle" fill="#7060a0" font-family="monospace" font-size="10">@Transactional</text>
+  <text x="415" y="266" text-anchor="middle" fill="#504070" font-family="monospace" font-size="10">트랜잭션 시작/커밋/롤백 자동</text>
+  <path d="M 320 245 C 280 245, 280 90, 330 90" fill="none" stroke="#5a3a8a" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#s2-aop)"/>
+  <text x="262" y="175" fill="#5a3a8a" font-family="monospace" font-size="10">wrap</text>
 </svg>
 
 이 시점의 Spring은 여전히 Servlet/JSP와 함께 사용됐다. MVC 레이어는 별도였다.
 
 ---
 
-## 3단계: Spring MVC 등장 (Spring 2.0~2.5, 2006~2007)
+## 3단계: Spring MVC 등장 (Spring 2.0–2.5, 2006–2007)
 
 ### 해결한 문제: MVC 패턴의 체계화
 
@@ -462,7 +462,7 @@ public class OrderController {
 
 ---
 
-## 4단계: Spring 3.x~4.x — 현대 구조 완성 (2009~2016)
+## 4단계: Spring 3.x–4.x — 현대 구조 완성 (2009–2016)
 
 ### Java Config — XML 탈출
 
@@ -518,7 +518,7 @@ public class OrderApi {
     <marker id="s3b-gn" markerWidth="8" markerHeight="6" refX="1" refY="3" orient="auto"><polygon points="8 0,0 3,8 6" fill="#3d7a3d"/></marker>
   </defs>
   <rect width="720" height="300" rx="8" fill="#161616"/>
-  <text x="14" y="18" fill="#555" font-family="monospace" font-size="11">Spring 3.x~4.x — REST API 중심 전환</text>
+  <text x="14" y="18" fill="#555" font-family="monospace" font-size="11">Spring 3.x–4.x — REST API 중심 전환</text>
 
   <!-- Frontend (SPA) -->
   <rect x="20" y="80" width="130" height="60" rx="6" fill="#252525" stroke="#3a3a3a" stroke-width="1.5"/>
@@ -559,7 +559,7 @@ public class OrderApi {
   <!-- 변화 비교 -->
   <rect x="40" y="196" width="290" height="80" rx="6" fill="#1a0a0a" stroke="#5a2a2a" stroke-width="1.5" stroke-dasharray="5,3"/>
   <text x="185" y="216" text-anchor="middle" fill="#aa5050" font-family="monospace" font-size="11" font-weight="600">Before (MVC)</text>
-  <text x="185" y="236" text-anchor="middle" fill="#885050" font-family="monospace" font-size="10">Controller → ModelAndView → ViewResolver → JSP</text>
+  <text x="185" y="236" text-anchor="middle" fill="#885050" font-family="monospace" font-size="10">Controller → ModelAndView → JSP 렌더링</text>
   <text x="185" y="256" text-anchor="middle" fill="#664040" font-family="monospace" font-size="10">서버가 HTML을 직접 렌더링</text>
 
   <rect x="390" y="196" width="290" height="80" rx="6" fill="#0a1a0a" stroke="#2e5c2e" stroke-width="1.5" stroke-dasharray="5,3"/>
@@ -583,7 +583,7 @@ public class OrderApi {
 
 ---
 
-## 5단계: Spring Boot — 설정보다 코드 (2014~)
+## 5단계: Spring Boot — 설정보다 코드 (2014–)
 
 ### 핵심: "Convention over Configuration"
 
@@ -670,12 +670,13 @@ spring:
 
 ### 현재 Spring Boot 아키텍처
 
-<svg viewBox="0 0 720 420" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;margin:1.5rem auto;display:block;border-radius:8px">
+<svg viewBox="0 0 720 430" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;margin:1.5rem auto;display:block;border-radius:8px">
   <defs>
     <marker id="s4b-ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#555"/></marker>
     <marker id="s4b-bl" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4a7aaa"/></marker>
+    <marker id="s4b-gn" markerWidth="8" markerHeight="6" refX="1" refY="3" orient="auto"><polygon points="8 0,0 3,8 6" fill="#3d7a3d"/></marker>
   </defs>
-  <rect width="720" height="420" rx="8" fill="#161616"/>
+  <rect width="720" height="430" rx="8" fill="#161616"/>
   <text x="14" y="18" fill="#555" font-family="monospace" font-size="11">Spring Boot — HTTP 요청 처리 흐름</text>
 
   <!-- Browser -->
@@ -688,7 +689,7 @@ spring:
   <rect x="152" y="168" width="110" height="80" rx="6" fill="#1a1e28" stroke="#4a5a7a" stroke-width="1.5"/>
   <text x="207" y="194" text-anchor="middle" fill="#8090b0" font-family="monospace" font-size="11" font-weight="600">Embedded</text>
   <text x="207" y="210" text-anchor="middle" fill="#8090b0" font-family="monospace" font-size="11" font-weight="600">Tomcat</text>
-  <text x="207" y="230" text-anchor="middle" fill="#505870" font-family="monospace" font-size="10">내장 서버</text>
+  <text x="207" y="228" text-anchor="middle" fill="#505870" font-family="monospace" font-size="10">내장 서버</text>
   <line x1="262" y1="208" x2="286" y2="208" stroke="#555" stroke-width="1.5" marker-end="url(#s4b-ar)"/>
 
   <!-- Filter Chain -->
@@ -706,43 +707,40 @@ spring:
   <text x="504" y="228" text-anchor="middle" fill="#4a6a8a" font-family="monospace" font-size="10">HandlerAdapter</text>
   <text x="504" y="244" text-anchor="middle" fill="#4a6a8a" font-family="monospace" font-size="10">MessageConverter</text>
 
-  <!-- Arrow to Controller -->
+  <!-- Arrow DispatcherServlet → Controller -->
   <line x1="574" y1="208" x2="610" y2="208" stroke="#4a7aaa" stroke-width="1.5" marker-end="url(#s4b-bl)"/>
 
-  <!-- Controller + AOP -->
+  <!-- @RestController -->
   <rect x="612" y="148" width="90" height="52" rx="6" fill="#252525" stroke="#3a3a3a" stroke-width="1.5"/>
   <text x="657" y="170" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="11" font-weight="600">@Rest</text>
   <text x="657" y="186" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="11" font-weight="600">Controller</text>
 
-  <!-- AOP Transactional -->
-  <rect x="612" y="218" width="90" height="52" rx="6" fill="#1a1028" stroke="#5a3a8a" stroke-width="1.5"/>
+  <!-- @Transactional AOP -->
+  <rect x="612" y="218" width="90" height="50" rx="6" fill="#1a1028" stroke="#5a3a8a" stroke-width="1.5"/>
   <text x="657" y="238" text-anchor="middle" fill="#a080d0" font-family="monospace" font-size="10">@Transactional</text>
   <text x="657" y="254" text-anchor="middle" fill="#7050a0" font-family="monospace" font-size="10">AOP Proxy</text>
   <line x1="657" y1="200" x2="657" y2="218" stroke="#5a3a8a" stroke-width="1.5" stroke-dasharray="3,2" marker-end="url(#s4b-ar)"/>
 
-  <!-- ArgumentResolver annotation -->
-  <rect x="434" y="296" width="270" height="44" rx="6" fill="#1a1a10" stroke="#5a5a2a" stroke-width="1.5"/>
-  <text x="569" y="316" text-anchor="middle" fill="#aaaa60" font-family="monospace" font-size="11">ArgumentResolver</text>
-  <text x="569" y="332" text-anchor="middle" fill="#606030" font-family="monospace" font-size="10">@RequestBody / @PathVariable / @RequestParam 바인딩</text>
+  <!-- ArgumentResolver -->
+  <rect x="434" y="296" width="268" height="46" rx="6" fill="#1a1a10" stroke="#5a5a2a" stroke-width="1.5"/>
+  <text x="568" y="316" text-anchor="middle" fill="#aaaa60" font-family="monospace" font-size="11">ArgumentResolver</text>
+  <text x="568" y="332" text-anchor="middle" fill="#606030" font-family="monospace" font-size="9">@RequestBody / @PathVariable / @RequestParam</text>
   <line x1="504" y1="268" x2="504" y2="296" stroke="#555" stroke-width="1.5" stroke-dasharray="3,2" marker-end="url(#s4b-ar)"/>
 
-  <!-- Response arrow back (right-to-left: Controller → DispatcherServlet → Tomcat → Browser) -->
-  <defs>
-    <marker id="s4b-gn" markerWidth="8" markerHeight="6" refX="1" refY="3" orient="auto"><polygon points="8 0,0 3,8 6" fill="#3d7a3d"/></marker>
-  </defs>
-  <line x1="612" y1="174" x2="612" y2="290" stroke="#3d7a3d" stroke-width="1.5"/>
-  <line x1="612" y1="290" x2="70" y2="290" stroke="#3d7a3d" stroke-width="1.5"/>
-  <line x1="70" y1="290" x2="70" y2="230" stroke="#3d7a3d" stroke-width="1.5" marker-end="url(#s4b-gn)"/>
-  <text x="340" y="284" text-anchor="middle" fill="#3d6a3d" font-family="monospace" font-size="10">JSON Response (Jackson 직렬화)</text>
+  <!-- Response arrow: Controller right edge → down → left under all boxes → up to Browser bottom -->
+  <line x1="702" y1="174" x2="702" y2="360" stroke="#3d7a3d" stroke-width="1.5"/>
+  <line x1="702" y1="360" x2="20" y2="360" stroke="#3d7a3d" stroke-width="1.5"/>
+  <line x1="20" y1="360" x2="20" y2="230" stroke="#3d7a3d" stroke-width="1.5" marker-end="url(#s4b-gn)"/>
+  <text x="400" y="354" text-anchor="middle" fill="#3d6a3d" font-family="monospace" font-size="10">JSON Response (Jackson 직렬화)</text>
 
-  <!-- Startup boxes at bottom -->
-  <rect x="20" y="354" width="310" height="50" rx="6" fill="#0a1a0a" stroke="#2e5c2e" stroke-width="1.5"/>
-  <text x="175" y="374" text-anchor="middle" fill="#4a8a4a" font-family="monospace" font-size="11" font-weight="600">SpringApplication.run() 시작 시</text>
-  <text x="175" y="392" text-anchor="middle" fill="#3a6a3a" font-family="monospace" font-size="10">Embedded Tomcat 기동 · ApplicationContext 구성 · Auto-configuration 적용</text>
+  <!-- Startup info at bottom -->
+  <rect x="20" y="376" width="316" height="44" rx="6" fill="#0a1a0a" stroke="#2e5c2e" stroke-width="1.5"/>
+  <text x="178" y="394" text-anchor="middle" fill="#4a8a4a" font-family="monospace" font-size="10" font-weight="600">SpringApplication.run() 시작 시</text>
+  <text x="178" y="410" text-anchor="middle" fill="#3a6a3a" font-family="monospace" font-size="9">Tomcat 기동 · AppContext 구성 · Auto-config 적용</text>
 
-  <rect x="350" y="354" width="330" height="50" rx="6" fill="#1a1028" stroke="#5a3a8a" stroke-width="1.5"/>
-  <text x="515" y="374" text-anchor="middle" fill="#a080d0" font-family="monospace" font-size="11" font-weight="600">Auto-configuration</text>
-  <text x="515" y="392" text-anchor="middle" fill="#7050a0" font-family="monospace" font-size="10">@ConditionalOnClass/MissingBean — 필요한 빈만 자동 생성</text>
+  <rect x="346" y="376" width="354" height="44" rx="6" fill="#1a1028" stroke="#5a3a8a" stroke-width="1.5"/>
+  <text x="523" y="394" text-anchor="middle" fill="#a080d0" font-family="monospace" font-size="10" font-weight="600">Auto-configuration</text>
+  <text x="523" y="410" text-anchor="middle" fill="#7050a0" font-family="monospace" font-size="9">@ConditionalOnClass/MissingBean — 필요한 빈만 자동 생성</text>
 </svg>
 
 ---
