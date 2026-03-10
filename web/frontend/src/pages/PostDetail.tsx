@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import rehypeRaw from 'rehype-raw'
 import Tag from '../components/common/Tag'
 import SpringBootSelector from '../components/SpringBootSelector'
 import styles from './PostDetail.module.css'
@@ -75,7 +76,7 @@ export default function PostDetail() {
         </div>
         <article className={styles.body}>
           {InteractiveComponent && <InteractiveComponent />}
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
             {post.content}
           </ReactMarkdown>
         </article>
