@@ -21,6 +21,17 @@ public class DataInitializer implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         postRepository.save(new Post(
+            "blog-architecture",
+            "이 블로그의 아키텍처 — 서버 없이 맥북 한 대로 운영하기",
+            "별도 서버 없이 로컬 맥에서 Docker Compose 하나로 이 블로그를 운영하는 방법. " +
+            "Cloudflare Tunnel로 외부 노출, Jenkins Blue-Green 배포, Prometheus + Grafana 모니터링까지 전체 구조를 설명한다.",
+            BLOG_ARCHITECTURE_CONTENT,
+            "2026-03-11",
+            Instant.parse("2026-03-11T09:00:00Z"),
+            List.of("Architecture", "Docker", "Cloudflare", "Jenkins", "Blue-Green", "Spring Boot", "DevOps")
+        ));
+
+        postRepository.save(new Post(
             "spring-boot-version-guide",
             "Spring Framework 버전 선택 가이드 — 의존성 호환성과 LTS 전략",
             "Spring Framework를 기준으로 Boot, 웹 서버, ORM 등 모든 의존성의 호환성을 정리. " +
@@ -1207,5 +1218,285 @@ percona/mongodb_exporter v0.40은 기본적으로 최소한의 메트릭만 수�
 **커뮤니티 대시보드의 메트릭명 불일치**
 
 커뮤니티 대시보드는 특정 버전의 exporter를 기준으로 작성된다. exporter 버전이 다르면 메트릭명이 달라질 수 있다. 예를 들어 percona mongodb exporter v0.40에서는 `mongodb_metrics_document_total` 대신 `mongodb_mongod_metrics_document_total`을 사용한다.
+""";
+
+    private static final String BLOG_ARCHITECTURE_CONTENT = """
+# 이 블로그의 아키텍처
+
+## 들어가며
+
+개인 블로그를 만들기로 했을 때 가장 먼저 부딪히는 문제는 "서버를 어디에 둘 것인가"이다. AWS EC2나 GCP를 쓰면 월 사용료가 발생하고, 저렴한 VPS는 스펙이 빈약하다.
+
+이 블로그는 별도 서버 없이 개인 맥북에서 실행된다. Cloudflare Tunnel 덕분에 포트 포워딩이나 공인 IP 없이도 외부 접근이 가능하다. 어떤 구조로 만들어졌는지 순서대로 설명한다.
+
+---
+
+## 전체 구조
+
+<svg viewBox="0 0 720 460" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;margin:1.5rem auto;display:block;border-radius:8px">
+  <defs>
+    <marker id="a1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#555"/></marker>
+    <marker id="a1g" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#3d7a3d"/></marker>
+  </defs>
+  <rect width="720" height="460" rx="8" fill="#161616"/>
+  <text x="14" y="18" fill="#555" font-family="monospace" font-size="11">전체 인프라 아키텍처</text>
+
+  <!-- Browser -->
+  <rect x="280" y="28" width="160" height="44" rx="6" fill="#252525" stroke="#3a3a3a" stroke-width="1.5"/>
+  <text x="360" y="48" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="13" font-weight="600">Browser</text>
+  <text x="360" y="64" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">사용자 (외부 인터넷)</text>
+
+  <line x1="360" y1="72" x2="360" y2="88" stroke="#555" stroke-width="1.5" marker-end="url(#a1)"/>
+  <text x="366" y="83" fill="#555" font-family="monospace" font-size="9">HTTPS</text>
+
+  <!-- Cloudflare -->
+  <rect x="110" y="90" width="500" height="50" rx="6" fill="#1e2a3a" stroke="#1a6abf" stroke-width="1.5"/>
+  <text x="360" y="110" text-anchor="middle" fill="#4a9eff" font-family="monospace" font-size="13" font-weight="600">Cloudflare</text>
+  <text x="360" y="128" text-anchor="middle" fill="#5588bb" font-family="monospace" font-size="10">DNS + DDoS 방어 + Tunnel (공인 IP 불필요)</text>
+
+  <line x1="360" y1="140" x2="360" y2="156" stroke="#555" stroke-width="1.5" marker-end="url(#a1)"/>
+  <text x="366" y="151" fill="#555" font-family="monospace" font-size="9">HTTP</text>
+
+  <!-- nginx -->
+  <rect x="210" y="158" width="300" height="50" rx="6" fill="#252525" stroke="#3a3a3a" stroke-width="1.5"/>
+  <text x="360" y="178" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="13" font-weight="600">nginx : 80</text>
+  <text x="360" y="196" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">리버스 프록시 · 유일한 외부 노출 포트</text>
+
+  <!-- nginx to 4 services -->
+  <line x1="240" y1="208" x2="98" y2="230" stroke="#555" stroke-width="1.2" marker-end="url(#a1)"/>
+  <line x1="300" y1="208" x2="270" y2="230" stroke="#555" stroke-width="1.2" marker-end="url(#a1)"/>
+  <line x1="430" y1="208" x2="455" y2="230" stroke="#555" stroke-width="1.2" marker-end="url(#a1)"/>
+  <line x1="490" y1="208" x2="625" y2="230" stroke="#555" stroke-width="1.2" marker-end="url(#a1)"/>
+
+  <!-- web-blue -->
+  <rect x="16" y="230" width="164" height="58" rx="5" fill="#1e3a1e" stroke="#3d7a3d" stroke-width="1.5"/>
+  <text x="98" y="250" text-anchor="middle" fill="#6dbf6d" font-family="monospace" font-size="12" font-weight="600">web-blue</text>
+  <text x="98" y="266" text-anchor="middle" fill="#4d9f4d" font-family="monospace" font-size="10">Spring Boot 4</text>
+  <text x="98" y="280" text-anchor="middle" fill="#3a7a3a" font-family="monospace" font-size="10">React SPA 서빙 포함</text>
+
+  <!-- web-green -->
+  <rect x="192" y="230" width="164" height="58" rx="5" fill="#1a2a1a" stroke="#2d5a2d" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="274" y="250" text-anchor="middle" fill="#4a7a4a" font-family="monospace" font-size="12" font-weight="600">web-green</text>
+  <text x="274" y="266" text-anchor="middle" fill="#3a6a3a" font-family="monospace" font-size="10">배포 시에만 기동</text>
+  <text x="274" y="280" text-anchor="middle" fill="#2a5a2a" font-family="monospace" font-size="10">profiles: deploy</text>
+
+  <!-- jenkins -->
+  <rect x="368" y="230" width="164" height="58" rx="5" fill="#3a2a1a" stroke="#e8943a" stroke-width="1.5"/>
+  <text x="450" y="250" text-anchor="middle" fill="#e8943a" font-family="monospace" font-size="12" font-weight="600">Jenkins</text>
+  <text x="450" y="266" text-anchor="middle" fill="#b07030" font-family="monospace" font-size="10">CI/CD 파이프라인</text>
+  <text x="450" y="280" text-anchor="middle" fill="#906020" font-family="monospace" font-size="10">Blue-Green 배포</text>
+
+  <!-- monitoring -->
+  <rect x="544" y="230" width="160" height="58" rx="5" fill="#2a1e3a" stroke="#9b59b6" stroke-width="1.5"/>
+  <text x="624" y="250" text-anchor="middle" fill="#b07ad0" font-family="monospace" font-size="12" font-weight="600">Prometheus</text>
+  <text x="624" y="266" text-anchor="middle" fill="#906ab0" font-family="monospace" font-size="10">+ Grafana</text>
+  <text x="624" y="280" text-anchor="middle" fill="#7050a0" font-family="monospace" font-size="10">메트릭 수집·시각화</text>
+
+  <!-- data layer -->
+  <text x="14" y="310" fill="#444" font-family="monospace" font-size="10">── 데이터 계층 ──────────────────────────────────────────────────────</text>
+
+  <line x1="98" y1="288" x2="98" y2="326" stroke="#2a5a2a" stroke-width="1.2" marker-end="url(#a1g)"/>
+  <line x1="274" y1="288" x2="274" y2="326" stroke="#2a5a2a" stroke-width="1.2" marker-end="url(#a1g)"/>
+
+  <!-- MongoDB -->
+  <rect x="16" y="328" width="164" height="50" rx="5" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="1.5"/>
+  <text x="98" y="349" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="12" font-weight="600">MongoDB</text>
+  <text x="98" y="366" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">포스트 · 방문 로그</text>
+
+  <!-- Redis -->
+  <rect x="192" y="328" width="164" height="50" rx="5" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="1.5"/>
+  <text x="274" y="349" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="12" font-weight="600">Redis</text>
+  <text x="274" y="366" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">Refresh Token · 캐시</text>
+
+  <!-- Oracle -->
+  <rect x="368" y="328" width="164" height="50" rx="5" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="1.5"/>
+  <text x="450" y="349" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="12" font-weight="600">Oracle XE</text>
+  <text x="450" y="366" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">사용자 · 방문 통계</text>
+
+  <!-- TSDB -->
+  <rect x="544" y="328" width="160" height="50" rx="5" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="1.5"/>
+  <text x="624" y="349" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="12" font-weight="600">TSDB</text>
+  <text x="624" y="366" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">시계열 메트릭 (15일)</text>
+
+  <!-- local machine border -->
+  <rect x="6" y="396" width="708" height="52" rx="6" fill="none" stroke="#2a2a2a" stroke-width="1" stroke-dasharray="6,4"/>
+  <text x="360" y="418" text-anchor="middle" fill="#444" font-family="monospace" font-size="10">로컬 맥북 — Docker Compose</text>
+  <text x="360" y="436" text-anchor="middle" fill="#333" font-family="monospace" font-size="9">모든 서비스는 같은 Docker 네트워크 안에서 컨테이너 이름으로 통신</text>
+</svg>
+
+nginx 하나만 포트 `80`을 외부에 노출하고, 나머지 서비스는 모두 `expose`(Docker 내부 전용)만 사용한다. 외부에서 보면 nginx가 전부다.
+
+---
+
+## Cloudflare Tunnel — 핵심 아이디어
+
+일반적으로 집 네트워크에서 서비스를 외부에 노출하려면 공유기 포트 포워딩과 공인 IP가 필요하다. IP가 유동적이면 DDNS도 관리해야 한다. Cloudflare Tunnel은 이 과정을 전부 생략한다.
+
+```
+로컬 → cloudflared 데몬이 Cloudflare 엣지에 아웃바운드 연결 유지
+외부 → Cloudflare 엣지 → 그 연결을 역방향으로 타고 로컬까지 도달
+```
+
+로컬 머신이 먼저 Cloudflare에 연결을 열어두기 때문에 인바운드 포트 개방이 전혀 없다. 공유기 설정 변경도, 공인 IP도 필요 없다.
+
+---
+
+## 애플리케이션 계층
+
+Spring Boot가 REST API 서버와 React SPA 정적 파일 서빙을 동시에 담당한다. 별도의 정적 파일 서버 없이 단일 JAR 하나로 프론트엔드와 백엔드를 함께 배포한다.
+
+```
+GET /api/posts     → Spring Boot (PostController)
+GET /api/auth      → Spring Boot (AuthController)
+GET /*             → React SPA (index.html fallback)
+```
+
+### 데이터 접근 패턴
+
+| 도메인 | 저장소 | 이유 |
+|--------|--------|------|
+| 블로그 포스트 | MongoDB | 스키마 변경이 잦고 마크다운 본문이 가변 길이 |
+| Refresh Token | Redis | TTL 기반 자동 만료가 필요 |
+| 사용자·방문 통계 | Oracle XE | 관계형 집계 쿼리 (JPA + MyBatis 혼용) |
+
+---
+
+## Blue-Green 무중단 배포
+
+배포할 때 서비스를 내리지 않는다. 현재 트래픽을 받는 슬롯(blue)이 살아있는 상태에서 새 버전을 다른 슬롯(green)에 띄우고, nginx upstream만 바꿔서 전환한다.
+
+<svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;margin:1.5rem auto;display:block;border-radius:8px">
+  <defs>
+    <marker id="a2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#555"/></marker>
+    <marker id="a2g" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#3d9e3d"/></marker>
+  </defs>
+  <rect width="720" height="320" rx="8" fill="#161616"/>
+  <text x="14" y="18" fill="#555" font-family="monospace" font-size="11">Blue-Green 배포 흐름</text>
+
+  <!-- Step 1 -->
+  <rect x="16" y="36" width="124" height="80" rx="5" fill="#3a2a1a" stroke="#e8943a" stroke-width="1.5"/>
+  <text x="78" y="57" text-anchor="middle" fill="#e8943a" font-family="monospace" font-size="11" font-weight="600">1. 빌드</text>
+  <text x="78" y="74" text-anchor="middle" fill="#906020" font-family="monospace" font-size="9">Jenkins</text>
+  <text x="78" y="89" text-anchor="middle" fill="#906020" font-family="monospace" font-size="9">docker build</text>
+  <text x="78" y="104" text-anchor="middle" fill="#906020" font-family="monospace" font-size="9">jkypch-web:latest</text>
+  <line x1="140" y1="76" x2="160" y2="76" stroke="#555" stroke-width="1.5" marker-end="url(#a2)"/>
+
+  <!-- Step 2 -->
+  <rect x="162" y="36" width="124" height="80" rx="5" fill="#1e2a1e" stroke="#3d7a3d" stroke-width="1.5"/>
+  <text x="224" y="57" text-anchor="middle" fill="#5db05d" font-family="monospace" font-size="11" font-weight="600">2. green 기동</text>
+  <text x="224" y="74" text-anchor="middle" fill="#3d8a3d" font-family="monospace" font-size="9">docker compose</text>
+  <text x="224" y="89" text-anchor="middle" fill="#3d8a3d" font-family="monospace" font-size="9">--profile deploy</text>
+  <text x="224" y="104" text-anchor="middle" fill="#3d8a3d" font-family="monospace" font-size="9">up -d web-green</text>
+  <line x1="286" y1="76" x2="306" y2="76" stroke="#555" stroke-width="1.5" marker-end="url(#a2)"/>
+
+  <!-- Step 3 -->
+  <rect x="308" y="36" width="124" height="80" rx="5" fill="#1e1e2a" stroke="#4a6abf" stroke-width="1.5"/>
+  <text x="370" y="57" text-anchor="middle" fill="#6a9aef" font-family="monospace" font-size="11" font-weight="600">3. 헬스체크</text>
+  <text x="370" y="74" text-anchor="middle" fill="#4a7abf" font-family="monospace" font-size="9">GET /actuator</text>
+  <text x="370" y="89" text-anchor="middle" fill="#4a7abf" font-family="monospace" font-size="9">/health</text>
+  <text x="370" y="104" text-anchor="middle" fill="#4a7abf" font-family="monospace" font-size="9">200 대기 (60s)</text>
+  <line x1="432" y1="76" x2="452" y2="76" stroke="#555" stroke-width="1.5" marker-end="url(#a2)"/>
+
+  <!-- Step 4 -->
+  <rect x="454" y="36" width="124" height="80" rx="5" fill="#252525" stroke="#aaaaaa" stroke-width="1.5"/>
+  <text x="516" y="57" text-anchor="middle" fill="#cccccc" font-family="monospace" font-size="11" font-weight="600">4. nginx 전환</text>
+  <text x="516" y="74" text-anchor="middle" fill="#888" font-family="monospace" font-size="9">web-active.conf</text>
+  <text x="516" y="89" text-anchor="middle" fill="#888" font-family="monospace" font-size="9">upstream 수정</text>
+  <text x="516" y="104" text-anchor="middle" fill="#888" font-family="monospace" font-size="9">nginx -s reload</text>
+  <line x1="578" y1="76" x2="598" y2="76" stroke="#555" stroke-width="1.5" marker-end="url(#a2)"/>
+
+  <!-- Step 5 -->
+  <rect x="600" y="36" width="104" height="80" rx="5" fill="#2a1e1e" stroke="#c04040" stroke-width="1.5"/>
+  <text x="652" y="57" text-anchor="middle" fill="#e06060" font-family="monospace" font-size="11" font-weight="600">5. blue 중지</text>
+  <text x="652" y="78" text-anchor="middle" fill="#a04040" font-family="monospace" font-size="9">docker stop</text>
+  <text x="652" y="93" text-anchor="middle" fill="#a04040" font-family="monospace" font-size="9">web-blue</text>
+
+  <!-- Before / After -->
+  <text x="14" y="148" fill="#444" font-family="monospace" font-size="10">── 전환 전후 ────────────────────────────────────────────────────────</text>
+
+  <!-- Before -->
+  <text x="150" y="170" text-anchor="middle" fill="#555" font-family="monospace" font-size="10">전환 전</text>
+  <rect x="50" y="178" width="110" height="34" rx="4" fill="#1e3a1e" stroke="#3d7a3d" stroke-width="1.5"/>
+  <text x="105" y="200" text-anchor="middle" fill="#6dbf6d" font-family="monospace" font-size="11">web-blue ●</text>
+  <rect x="170" y="178" width="110" height="34" rx="4" fill="#1a1a1a" stroke="#2a2a2a" stroke-width="1.5"/>
+  <text x="225" y="200" text-anchor="middle" fill="#444" font-family="monospace" font-size="11">web-green ○</text>
+  <rect x="76" y="222" width="58" height="22" rx="3" fill="#252525" stroke="#3a3a3a" stroke-width="1"/>
+  <text x="105" y="237" text-anchor="middle" fill="#888" font-family="monospace" font-size="9">nginx →</text>
+  <line x1="105" y1="212" x2="105" y2="222" stroke="#3d7a3d" stroke-width="1.5" marker-end="url(#a2g)"/>
+
+  <!-- Arrow between -->
+  <line x1="296" y1="200" x2="330" y2="200" stroke="#555" stroke-width="1.5" marker-end="url(#a2)"/>
+  <text x="313" y="195" text-anchor="middle" fill="#555" font-family="monospace" font-size="9">reload</text>
+
+  <!-- After -->
+  <text x="460" y="170" text-anchor="middle" fill="#555" font-family="monospace" font-size="10">전환 후</text>
+  <rect x="350" y="178" width="110" height="34" rx="4" fill="#1a1a1a" stroke="#2a2a2a" stroke-width="1.5"/>
+  <text x="405" y="200" text-anchor="middle" fill="#444" font-family="monospace" font-size="11">web-blue ○</text>
+  <rect x="470" y="178" width="110" height="34" rx="4" fill="#1e3a1e" stroke="#3d7a3d" stroke-width="1.5"/>
+  <text x="525" y="200" text-anchor="middle" fill="#6dbf6d" font-family="monospace" font-size="11">web-green ●</text>
+  <rect x="496" y="222" width="58" height="22" rx="3" fill="#252525" stroke="#3a3a3a" stroke-width="1"/>
+  <text x="525" y="237" text-anchor="middle" fill="#888" font-family="monospace" font-size="9">nginx →</text>
+  <line x1="525" y1="212" x2="525" y2="222" stroke="#3d7a3d" stroke-width="1.5" marker-end="url(#a2g)"/>
+
+  <!-- rollback -->
+  <rect x="598" y="166" width="108" height="80" rx="4" fill="#1e1e1e" stroke="#555" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="652" y="186" text-anchor="middle" fill="#666" font-family="monospace" font-size="9">헬스체크 실패 시</text>
+  <text x="652" y="202" text-anchor="middle" fill="#e06060" font-family="monospace" font-size="10">자동 롤백</text>
+  <text x="652" y="218" text-anchor="middle" fill="#555" font-family="monospace" font-size="9">green 중지</text>
+  <text x="652" y="234" text-anchor="middle" fill="#555" font-family="monospace" font-size="9">blue 유지</text>
+
+  <text x="360" y="282" text-anchor="middle" fill="#555" font-family="monospace" font-size="10">nginx reload는 기존 커넥션을 끊지 않는다 — 요청 단위 무중단 전환</text>
+</svg>
+
+핵심은 nginx `reload`의 동작 방식이다. `restart`와 달리 `reload`는 기존 커넥션을 유지한 채 새 설정으로 워커 프로세스를 교체한다. Jenkins는 `docker.sock`을 마운트받아 호스트 Docker를 직접 제어하기 때문에, 별도 빌드 에이전트 없이 Jenkins 컨테이너가 `docker build`와 `docker compose up`을 직접 실행한다.
+
+---
+
+## Dockerfile — 3단계 빌드
+
+배포 이미지 크기를 줄이기 위해 빌드 도구를 런타임 이미지에 포함하지 않는다.
+
+```dockerfile
+# Stage 1: 프론트엔드 빌드
+FROM node:22-alpine AS frontend
+RUN npm ci && npm run build   # → dist/
+
+# Stage 2: 백엔드 빌드
+FROM maven:3.9-eclipse-temurin-21 AS backend
+RUN mvn dependency:go-offline  # 레이어 캐시
+COPY --from=frontend dist/ src/main/resources/static/
+RUN mvn package -DskipTests    # → target/*.jar
+
+# Stage 3: 런타임 (JRE만)
+FROM eclipse-temurin:21-jre
+COPY --from=backend target/*.jar app.jar
+ENTRYPOINT ["java", "-jar", "/app.jar"]
+```
+
+최종 이미지에는 Node.js도, Maven도, JDK도 없다. JRE + JAR만 남는다.
+
+---
+
+## 모니터링
+
+각 서비스 옆에 Exporter를 붙여 Prometheus가 메트릭을 수집하고 Grafana가 시각화한다.
+
+| Exporter | 수집 대상 |
+|----------|----------|
+| `/actuator/prometheus` | Spring Boot (직접 제공) |
+| nginx-prometheus-exporter | nginx 요청 수, 커넥션 수 |
+| percona/mongodb_exporter | MongoDB 쿼리, 커넥션 |
+| redis_exporter | Redis 명령 수, 메모리 |
+| oracledb_exporter | Oracle 세션, 쿼리 |
+
+Spring Boot만 Prometheus 포맷을 직접 지원한다. 나머지는 자체 포맷이 있거나 외부 스크랩을 지원하지 않아 Exporter가 중간 변환을 담당한다.
+
+---
+
+## 마치며
+
+"서버가 없다"는 제약이 생각보다 많은 것을 강제했다. Cloudflare Tunnel을 써야 했고, 배포 중 서비스 중단을 허용할 수 없어 Blue-Green을 구현했고, 로컬 리소스 모니터링이 필요해 Prometheus를 붙였다.
+
+제약이 설계를 만든다.
 """;
 }
