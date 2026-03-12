@@ -172,3 +172,24 @@
 .body tr:nth-child(even) td {
   background: var(--bg-0);
 }
+
+/* Mobile */
+@media (max-width: 600px) {
+  .header { margin-bottom: var(--gap-lg); }
+  .body h1 { font-size: 1.4rem; }
+  .body h2 { font-size: 1.15rem; }
+  .body h3 { font-size: 1rem; }
+  .body table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    font-size: 0.82rem;
+  }
+  .body th,
+  .body td {
+    padding: 0.35rem 0.5rem;
+    white-space: nowrap;
+  }
+  .body pre { padding: var(--gap-sm) var(--gap-md); }
+  .body pre code { font-size: 0.8rem; }
+}
