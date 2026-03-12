@@ -10,9 +10,8 @@ pipeline {
 
     environment {
         IMAGE      = 'jkypch-web:latest'
-        NETWORK    = 'jkypch_default'
-        NGINX_CONF = '/nginx-conf'
         PROJECT    = 'jkypch'
+        COMPOSE    = "docker compose -f /workspace/docker-compose.yml -p ${PROJECT}"
     }
 
     stages {
@@ -27,9 +26,9 @@ pipeline {
         stage('Determine Slots') {
             steps {
                 script {
-                    def conf = readFile("${env.NGINX_CONF}/web-active.conf")
+                    def conf = readFile("/nginx-conf/web-active.conf")
                     env.ACTIVE   = conf.contains('web-blue') ? 'blue' : 'green'
-                    env.INACTIVE = env.ACTIVE  == 'blue'    ? 'green' : 'blue'
+                    env.INACTIVE = env.ACTIVE == 'blue' ? 'green' : 'blue'
                     echo "▶ Active=${env.ACTIVE}  →  Deploy to=${env.INACTIVE}"
                 }
             }
@@ -38,28 +37,11 @@ pipeline {
         stage('Start Inactive Slot') {
             steps {
                 script {
-                    def cname   = "${env.PROJECT}-web-${env.INACTIVE}-1"
-                    def active  = env.ACTIVE
                     def inactive = env.INACTIVE
-                    def image   = env.IMAGE
-                    def network = env.NETWORK
-
+                    // 기존 컨테이너 강제 정리 후 Compose로 기동
                     sh """
-                        docker rm -f ${cname} 2>/dev/null || true
-                        docker run -d \\
-                            --name ${cname} \\
-                            --network ${network} \\
-                            --network-alias web-${inactive} \\
-                            -e SPRING_PROFILES_ACTIVE=prod \\
-                            -e MONGODB_URI=mongodb://mongodb:27017/jkypch \\
-                            -e SPRING_MONGODB_URI=mongodb://mongodb:27017/jkypch \\
-                            -e SPRING_DATA_REDIS_HOST=redis \\
-                            -e SPRING_DATA_REDIS_PORT=6379 \\
-                            -e ORACLE_URL=\${ORACLE_URL:-} \\
-                            -e ORACLE_USER=\${ORACLE_USER:-} \\
-                            -e ORACLE_PASS=\${ORACLE_PASS:-} \\
-                            -e JWT_SECRET=\${JWT_SECRET:-} \\
-                            ${image}
+                        ${env.COMPOSE} --profile deploy rm -sf web-${inactive} 2>/dev/null || true
+                        ${env.COMPOSE} --profile deploy up -d web-${inactive}
                     """
                 }
             }
@@ -71,7 +53,7 @@ pipeline {
                     def inactive = env.INACTIVE
                     echo "Waiting for web-${inactive}:8080/actuator/health ..."
                     timeout(time: 5, unit: 'MINUTES') {
-                        waitUntil(initialRecurrencePeriod: 5000, quiet: true) {
+                        waitUntil(initialRecurrencePeriod: 10000, quiet: true) {
                             def code = sh(
                                 script: "curl -sf http://web-${inactive}:8080/actuator/health",
                                 returnStatus: true
@@ -88,11 +70,12 @@ pipeline {
             steps {
                 script {
                     def inactive = env.INACTIVE
-                    def project  = env.PROJECT
-                    // nginx map 변수 ($host, $web_backend) 이스케이프 주의
                     def confContent = "map \$host \$web_backend {\n    default \"web-${inactive}:8080\";\n}\n"
-                    writeFile file: "${env.NGINX_CONF}/web-active.conf", text: confContent
-                    sh "docker exec ${project}-nginx-1 nginx -s reload"
+                    writeFile file: "/nginx-conf/web-active.conf", text: confContent
+                    sh """
+                        docker exec ${env.PROJECT}-nginx-1 nginx -t && \
+                        docker exec ${env.PROJECT}-nginx-1 nginx -s reload
+                    """
                     echo "✓ Traffic switched to web-${inactive}"
                 }
             }
@@ -101,10 +84,12 @@ pipeline {
         stage('Stop Old Slot') {
             steps {
                 script {
-                    def active  = env.ACTIVE
-                    def project = env.PROJECT
-                    sh "docker stop ${project}-web-${active}-1 || true"
-                    echo "✓ Stopped web-${active}"
+                    def active = env.ACTIVE
+                    sh """
+                        ${env.COMPOSE} --profile deploy stop web-${active} || true
+                        ${env.COMPOSE} --profile deploy rm -f web-${active} || true
+                    """
+                    echo "✓ Stopped and removed web-${active}"
                 }
             }
         }
@@ -117,9 +102,11 @@ pipeline {
         failure {
             script {
                 def inactive = env.INACTIVE
-                def project  = env.PROJECT
-                sh "docker stop ${project}-web-${inactive}-1 2>/dev/null || true"
-                echo "❌ Deploy failed — rolled back (stopped web-${inactive})"
+                sh """
+                    ${env.COMPOSE} --profile deploy stop web-${inactive} 2>/dev/null || true
+                    ${env.COMPOSE} --profile deploy rm -f web-${inactive} 2>/dev/null || true
+                """
+                echo "❌ Deploy failed — cleaned up web-${inactive}"
             }
         }
     }
