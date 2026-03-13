@@ -63,6 +63,25 @@ export default function PostDetail() {
   /* 포스트 ID에 매칭되는 인터랙티브 컴포넌트가 있으면 렌더링 */
   const InteractiveComponent = post.id ? POST_COMPONENTS[post.id] : undefined
 
+  /* details 일괄 펼침/접기 버튼 바인딩 */
+  useEffect(() => {
+    if (!post) return
+    const toggleBtn = document.getElementById('nldd-toggle-all')
+    if (!toggleBtn) return
+
+    const handler = () => {
+      const section = document.getElementById('nldd-guide-section')
+      if (!section) return
+      const details = section.querySelectorAll('details')
+      const allOpen = Array.from(details).every(d => d.open)
+      details.forEach(d => (d.open = !allOpen))
+      toggleBtn.textContent = allOpen ? '모두 펼치기' : '모두 접기'
+    }
+
+    toggleBtn.addEventListener('click', handler)
+    return () => toggleBtn.removeEventListener('click', handler)
+  }, [post])
+
   return (
     <div className={styles.page}>
       <div className="container">

@@ -8,3 +8,5 @@ job-dsl:latest
 pipeline-stage-view:latest
 timestamper:latest
 ansicolor:latest
+matrix-auth:latest
+extended-read-permission:latest

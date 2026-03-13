@@ -10,10 +10,19 @@ jenkins:
       users:
         - id: "admin"
           password: "${JENKINS_ADMIN_PASSWORD:-admin}"
+        - id: "guest"
+          password: "1234"
 
   authorizationStrategy:
-    loggedInUsersCanDoAnything:
-      allowAnonymousRead: false
+    globalMatrix:
+      permissions:
+        # admin — 전체 권한
+        - "Overall/Administer:admin"
+        # guest — 읽기 전용 (잡 상태/코드 조회만 가능, 빌드 실행 불가)
+        - "Overall/Read:guest"
+        - "Job/Read:guest"
+        - "Job/ExtendedRead:guest"
+        - "Job/Workspace:guest"
 
 unclassified:
   location:

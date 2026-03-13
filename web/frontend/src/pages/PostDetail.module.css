@@ -173,6 +173,43 @@
   background: var(--bg-0);
 }
 
+/* Details / Summary (collapsible) */
+.body details {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin: 0.75rem 0 1rem;
+  overflow: hidden;
+}
+
+.body details summary {
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-1);
+  user-select: none;
+  list-style: none;
+}
+
+.body details summary::before {
+  content: '▸ ';
+  color: var(--orange);
+  font-size: 0.8em;
+}
+
+.body details[open] summary::before {
+  content: '▾ ';
+}
+
+.body details > :not(summary) {
+  padding: 0 1rem;
+}
+
+.body details pre {
+  margin: 0.5rem 0 1rem;
+}
+
 /* Mobile */
 @media (max-width: 600px) {
   .header { margin-bottom: var(--gap-lg); }
